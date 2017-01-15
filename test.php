@@ -29,14 +29,18 @@
 	print "<table><tr><td style='width: 600px; vertical-align: top;'>";
 
 	$o	= 0x73545;
+	$to	= null;
 
 	if (isset($_GET['o'])) {
 		$o	= hexdec($_GET['o']);
 	}
+	if (isset($_GET['to'])) {
+		$to	= hexdec($_GET['to']);
+	}
 
 
 	print "<pre>";
-	$tb		= $itadaki->getTextbox($o);
+	$tb		= $itadaki->getTextbox($o, $to);
 	print "\n";
 	print $tb;
 	print "\n";

@@ -14,6 +14,8 @@
 	$matches	= array();
 	$res		= preg_match_all("#(?:\xa2|\xa9)(..)(?:\x85|\x86)\x05.{0,10}\x22\x3a\x92#", $rom, $matches);
 
+	print "                                                      u1 X  Y  W  H  u6 CO CX CY 10 TxtPt ???????????????\n";
+
 	foreach ($matches[0] as $i => $match) {
 		$dpos	= Utils::toIntLE($matches[1][$i]);
 		$dposc	= 0x68000 + $dpos;
