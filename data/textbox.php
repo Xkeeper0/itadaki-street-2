@@ -1,5 +1,7 @@
 <?php
 
+	namespace ItadakiStreet2;
+
 	class Textbox {
 
 		protected	$_translator	= null;
@@ -10,7 +12,7 @@
 		/**
 		 *
 		 */
-		public function __construct(Translator $translator, $offset, $header, $textOffset = null) {
+		public function __construct(\ItadakiStreet2 $translator, $offset, $header, $textOffset = null) {
 			$this->_translator	= $translator;
 			$this->_offset		= $offset;
 			$this->_headerData	= $header;

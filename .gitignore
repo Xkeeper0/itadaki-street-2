@@ -3,3 +3,4 @@
 *.srm
 stderr.txt
 stdout.txt
+sandbox*

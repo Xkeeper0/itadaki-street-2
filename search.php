@@ -1,7 +1,7 @@
 <?php
 
 	require "ita2.php";
-	$itadaki	= new Translator("ita2.sfc", "is2.tbl", null);
+	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
 	$rom	= file_get_contents("ita2.sfc");
 
 	print "<pre>";

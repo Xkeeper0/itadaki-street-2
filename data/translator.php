@@ -56,54 +56,6 @@
 		}
 
 
-		public function getTextbox($offset, $textOffset = null) {
-
-			$terminator		= strpos($this->_rom, "\0", $offset);
-			$dataLen		= $terminator - $offset;
-			#printf("Len = %x (%d)\n", $dataLen, $dataLen);
-			$data			= substr($this->_rom, $offset, $dataLen + 1);
-			#printf("data: %s\n", Utils::printableHex($data));
-
-			$u1				= $this->_romI($offset +  0);
-			$screenX		= $this->_romI($offset +  1);
-			$screenY		= $this->_romI($offset +  2);
-			$windowW		= $this->_romI($offset +  3);
-			$windowH		= $this->_romI($offset +  4);
-			$u6				= $this->_romI($offset +  5);
-			$cursorOptions	= $this->_romI($offset +  6);
-			$cursorX		= $this->_romI($offset +  7);
-			$cursorY		= $this->_romI($offset +  8);
-			$u10			= $this->_romI($offset +  9);
-			$textPointer	= $this->_romI($offset + 10, 2);
-
-			if ($textOffset) {
-				$text		= $this->getStringAtOffsetArray($textOffset);
-			} else {
-				// Try to get the text offset from the text pointer
-				// Chances of this working: slim
-				$textOffset	= floor($offset / 0x8000) * 0x8000 + ($textPointer % 0x8000);
-				#printf("I calculated the offset as %x\n", $textOffset);
-				$text		= $this->getStringAtOffsetArray($textOffset);
-			}
-			return new Textbox(
-							$offset,
-							$data,
-							$u1,
-							$screenX,
-							$screenY,
-							$windowW,
-							$windowH,
-							$u6,
-							$cursorOptions,
-							$cursorX,
-							$cursorY,
-							$u10,
-							$textPointer,
-							$textOffset,
-							$text
-							);
-		}
-
 
 
 		protected function _romI($o, $l = 1) {
