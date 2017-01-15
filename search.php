@@ -4,6 +4,7 @@
 
 	print "<pre>";
 
+	$itadaki	= new Translator("ita2.sfc", "is2.tbl", null);
 	$rom	= file_get_contents("ita2.sfc");
 
 	// "JSR $923A"
@@ -23,8 +24,18 @@
 				Utils::printableHex(substr($data, 5, 3)),
 				Utils::printableHex(substr($data, 8, 3))
 				);
-				#printf("%8x  %s -> <a href='test.php?o=0x%5x'>%04x</a>\n", $pos, Utils::printableHex($data), $dposc, $dpos);
-				printf("%8x   %s -> <a href='test.php?o=0x%5x'>%04x</a>\n", $pos, $dprint, $dposc, $dpos);
+
+		$ok		= "             ";
+		if (ord($rom{$dposc}) == 0x02) {
+			$ok	= "   (seems ok)";
+		}
+
+		$tb		= $itadaki->getTextbox($dposc);
+		$tbta	= explode("\n", (string)$tb);
+
+
+		#printf("%8x  %s -> <a href='test.php?o=0x%5x'>%04x</a>\n", $pos, Utils::printableHex($data), $dposc, $dpos);
+		printf("%8x   %s -> <a href='test.php?o=0x%5x'>%04x</a>%s   %s\n", $pos, $dprint, $dposc, $dpos, $ok, $tbta[0]);
 
 	}
 

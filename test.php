@@ -20,7 +20,10 @@
 
 
 	print "<pre>";
+	print $tb;
+	print "\n";
 	var_dump($tb);
+	printf("\n\n%x", $tb->textOffset);
 	print "</pre>";
 	print "</td><td>";
 

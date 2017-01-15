@@ -39,9 +39,9 @@
 
 			$terminator		= strpos($this->_rom, "\0", $offset);
 			$dataLen		= $terminator - $offset;
-			printf("Len = %x (%d)\n", $dataLen, $dataLen);
+			#printf("Len = %x (%d)\n", $dataLen, $dataLen);
 			$data			= substr($this->_rom, $offset, $dataLen + 1);
-			printf("data: %s\n", Utils::printableHex($data));
+			#printf("data: %s\n", Utils::printableHex($data));
 
 			$u1				= $this->_romI($offset +  0);
 			$screenX		= $this->_romI($offset +  1);
@@ -65,6 +65,7 @@
 				$text		= $this->getStringAtOffset($textOffset);
 			}
 			return new Textbox(
+							$offset,
 							$u1,
 							$screenX,
 							$screenY,
@@ -76,6 +77,7 @@
 							$cursorY,
 							$u10,
 							$textPointer,
+							$textOffset,
 							$text
 							);
 		}
@@ -148,6 +150,9 @@
 
 	class Textbox {
 
+		// Offset of textbox data
+		public	$textboxOffset	= null;
+
 		// Unknown. 02 draws normally, 00, 01, 03 make it invisible, 04 locks up?
 		public	$u1				= null;
 		// Where the left border of the window sits. 0 = against the left edge
@@ -170,12 +175,14 @@
 		public	$u10			= null;
 
 		public	$textPointer	= null;
+		public	$textOffset		= null;
 		public	$text			= null;
 
 		/**
 		 *
 		 */
-		public function __construct($u1, $x, $y, $w, $h, $u6, $co, $cx, $cy, $u10, $ptr, $text) {
+		public function __construct($tbofs, $u1, $x, $y, $w, $h, $u6, $co, $cx, $cy, $u10, $ptr, $ofs, $text) {
+			$this->textboxOffset	= $tbofs;
 			$this->u1				= $u1;
 			$this->screenX			= $x;
 			$this->screenY			= $y;
@@ -187,11 +194,26 @@
 			$this->cursorY			= $cy;
 			$this->u10				= $u10;
 			$this->textPointer		= $ptr;
+			$this->textOffset		= $ofs;
 			$this->text				= $text;
 		}
 
 
-
+		public function __toString() {
+			$x = sprintf(
+					"Textbox: u1: %02x - u6: %02x - u10: %02x\n".
+					"Position: %02x, %02x (%02x x %02x)\n".
+					"Cursor: %02x options, starts at %02x, %02x\n".
+					"Offset: %06x - Text pointer %04x (= %06x)\n".
+					"",#"-----------------------\n%s\n-----------------------\n",
+					$this->u1, $this->u6, $this->u10,
+					$this->screenX, $this->screenY, $this->windowW, $this->windowH,
+					$this->cursorOptions, $this->cursorX, $this->cursorY,
+					$this->textboxOffset, $this->textPointer, $this->textOffset,
+					$this->text
+					);
+			return $x;
+		}
 
 		public function prettyPrint() {
 			$grid					= array_fill(0, 28, array_fill(0, 32, null));
@@ -205,7 +227,7 @@
 			// Draw border
 			for ($yp = $btop; $yp <= $bbottom; $yp++) {
 				for ($xp = $bleft; $xp <= $bright; $xp++) {
-					$c		= "&nbsp;";
+					$c		= "";
 					if ($yp == $btop) {
 						if		($xp == $bleft) 	$c	= "┌";
 						elseif	($xp == $bright)	$c	= "┐";
