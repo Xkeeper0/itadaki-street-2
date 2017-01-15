@@ -1,11 +1,32 @@
 <?php
 
 	require "ita2.php";
+	$itadaki	= new Translator("ita2.sfc", "is2.tbl", null);
+	$rom	= file_get_contents("ita2.sfc");
 
 	print "<pre>";
 
-	$itadaki	= new Translator("ita2.sfc", "is2.tbl", null);
-	$rom	= file_get_contents("ita2.sfc");
+
+	// Search for something a little less (more) naively
+	// This is so complicated and dumb
+	// Basically look for (A2|A9) ## ## (85|86) 05 ######### 22 3A 92
+	// (LDA/LDX <pointer>, STA/STX $05, ..., JSR DrawTextbox)
+	$matches	= array();
+	$res		= preg_match_all("#(?:\xa2|\xa9)(..)(?:\x85|\x86)\x05.{0,10}\x22\x3a\x92#", $rom, $matches);
+
+	foreach ($matches[0] as $i => $match) {
+		$dpos	= Utils::toIntLE($matches[1][$i]);
+		$dposc	= 0x68000 + $dpos;
+
+		$tb		= $itadaki->getTextbox($dposc);
+		$tbta	= explode("\n", (string)$tb);
+
+		printf("%3d : <a href='test.php?o=0x%05x'>%s</a>  %-30s   %s\n", $i, $dposc, bin2hex($matches[1][$i]), bin2hex($match), $tbta[0]);
+	}
+
+	print "\n\n\n";
+
+
 
 	// "JSR $923A"
 	$search	= "\x22\x3a\x92";

@@ -35,6 +35,28 @@
 		}
 
 
+		public function getStringAtOffsetArray($offset, $length = false) {
+
+			$out	= array();
+			$stop	= false;
+			$pos	= 0;
+			while (($length === false && !$stop) || ($length !== false && $length > 0)) {
+				$bp		= $offset + $pos;
+				$byte	= ord($this->_rom{$bp});
+
+				if ($byte == $this->_terminator) {
+					$stop	= true;
+				} else {
+					$out[]	= (isset($this->_table[$byte])) ? $this->_table[$byte] : sprintf("[%02X]", $byte);
+					if ($length !== false) $length--;
+				}
+				$pos++;
+			}
+
+			return $out;
+		}
+
+
 		public function getTextbox($offset, $textOffset = null) {
 
 			$terminator		= strpos($this->_rom, "\0", $offset);
@@ -56,13 +78,13 @@
 			$textPointer	= $this->_romI($offset + 10, 2);
 
 			if ($textOffset) {
-				$text		= $this->getStringAtOffset($textOffset);
+				$text		= $this->getStringAtOffsetArray($textOffset);
 			} else {
 				// Try to get the text offset from the text pointer
 				// Chances of this working: slim
 				$textOffset	= floor($offset / 0x8000) * 0x8000 + ($textPointer % 0x8000);
 				#printf("I calculated the offset as %x\n", $textOffset);
-				$text		= $this->getStringAtOffset($textOffset);
+				$text		= $this->getStringAtOffsetArray($textOffset);
 			}
 			return new Textbox(
 							$offset,
@@ -205,12 +227,12 @@
 					"Position: %02x, %02x (%02x x %02x)\n".
 					"Cursor: %02x options, starts at %02x, %02x\n".
 					"Offset: %06x - Text pointer %04x (= %06x)\n".
-					"",#"-----------------------\n%s\n-----------------------\n",
+					"-----------------------\n%s\n-----------------------\n",
 					$this->u1, $this->u6, $this->u10,
 					$this->screenX, $this->screenY, $this->windowW, $this->windowH,
 					$this->cursorOptions, $this->cursorX, $this->cursorY,
 					$this->textboxOffset, $this->textPointer, $this->textOffset,
-					$this->text
+					implode("", $this->text)
 					);
 			return $x;
 		}
@@ -247,11 +269,12 @@
 
 
 			// Place the string
-			$len	= mb_strlen($this->text);
+			//$len	= mb_strlen($this->text);
 			$xp		= $bleft + 1;
 			$yp		= $btop + 1;
-			for ($i = 0; $i < $len; $i++) {
-				$char	= mb_substr($this->text, $i, 1);
+			//for ($i = 0; $i < $len; $i++) {
+			foreach ($this->text as $char) {
+				//$char	= mb_substr($this->text, $i, 1);
 
 				if ($char == "゙" || $char == "゚") {
 					// Handle combining chars.
@@ -280,12 +303,12 @@
 			// mb_strlen, mb_substr
 
 			// Render the table
-			print "<table style='background: #333; color: white;'>\n";
+			print "<table class='menugrid'>\n";
 			for ($y = 0; $y < 28; $y++) {
 				print "\t<tr>\n";
 				for ($x = 0; $x < 32; $x++) {
-					$bg	= ($grid[$y][$x] !== null ? "224" : "000");
-					print "\t\t<td style='width: 1.25em; height: 1.5em; background: #$bg; text-align: center;'>". $grid[$y][$x] ."</td>\n";
+					$c	= ($grid[$y][$x] !== null ? " class='c'" : "");
+					print "\t\t<td$c>". $grid[$y][$x] ."</td>\n";
 				}
 				print "\t</tr>\n";
 			}

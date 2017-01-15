@@ -1,3 +1,20 @@
+<style type="text/css">
+	.menugrid {
+		background: #000;
+		border-spacing: 1px;
+		color: white;
+	}
+	.menugrid td {
+		background: #222;
+		width: 1.5em;
+		height: 1.5em;
+		text-align: center;
+	}
+	.menugrid td.c {
+		background: #224;
+	}
+</style>
+
 <?php
 
 	require "ita2.php";
@@ -9,23 +26,24 @@
 	#var_dump($itadaki->getStringAtOffset(0x72ba0 + 4));
 	#var_dump($itadaki->getStringAtOffset(0x73554));
 
-	print "<table><tr><td style='width: 600px;'>";
+	print "<table><tr><td style='width: 600px; vertical-align: top;'>";
 
 	$o	= 0x73545;
 
 	if (isset($_GET['o'])) {
 		$o	= hexdec($_GET['o']);
 	}
-	$tb		= $itadaki->getTextbox($o);
 
 
 	print "<pre>";
+	$tb		= $itadaki->getTextbox($o);
+	print "\n";
 	print $tb;
 	print "\n";
-	var_dump($tb);
+	#var_dump($tb);
 	printf("\n\n%x", $tb->textOffset);
 	print "</pre>";
-	print "</td><td>";
+	print "</td><td style=' vertical-align: top;'>";
 
 
 	$tb->prettyPrint();
