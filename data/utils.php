@@ -1,6 +1,10 @@
 <?php
 
 	class Utils {
+
+		/**
+		 * Convert a string of bytes into an integer
+		 */
 		public static function toIntLE($s) {
 			$out	= 0;
 			$sl		= strlen($s);
@@ -10,6 +14,10 @@
 			return $out;
 		}
 
+		/**
+		 * Pretty-print out binary data in hexadecimal.
+		 * Technically bin2hex() does this but without spaces
+		 */
 		public static function printableHex($s) {
 			$len	= strlen($s);
 			$out	= "";
@@ -21,6 +29,9 @@
 	}
 
 
+	/**
+	 * Seekable data thing, useful for script proccessing stuff
+	 */
 	class DataSeeker {
 		protected	$_pointer	= 0;
 		protected	$_length	= 0;

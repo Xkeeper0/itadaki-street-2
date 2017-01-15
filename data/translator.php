@@ -1,17 +1,29 @@
 <?php
 
 	class Translator {
+
+		// Table file.
 		protected $_table		= null;
+
+		// ROM file.
 		protected $_rom			= null;
 
+		// Terminator value
 		protected $_terminator	= null;
+
+		// @TODO: Figure out how to handle multiple tables
+		// Itadaki Street 2 has two tables (one smalltext, one bigtext)
+		// Obviously one table won't really cut it
 
 		public function __construct($romFile, $tableFile, $bigTableFile) {
 			$this->_readROM($romFile);
 			$this->_readTable($tableFile);
 		}
 
-
+		/**
+		 * Get a string from the ROM, converted to a string
+		 * @TODO Probably just do implode(getStringAtOffsetArray)
+		 */
 		public function getStringAtOffset($offset, $length = false) {
 
 			$out	= "";
@@ -33,7 +45,10 @@
 			return $out;
 		}
 
-
+		/**
+		 * Get an array of characters from a place in ROM
+		 * Useful because of multi-byte table entries
+		 */
 		public function getStringAtOffsetArray($offset, $length = false) {
 
 			$out	= array();

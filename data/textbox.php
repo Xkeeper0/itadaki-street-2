@@ -4,9 +4,13 @@
 
 	class Textbox {
 
+		// Translator class to handle text
 		protected	$_translator	= null;
+		// Offset into ROM for this textbox
 		protected	$_offset		= null;
+		// Data from the textbox definition
 		protected	$_headerData	= null;
+		// Offset to the textbox's... text
 		protected	$_textOffset	= null;
 
 		/**
@@ -19,29 +23,28 @@
 			$this->_textOffset	= $textOffset;
 		}
 
+		/**
+		 * Decode the header of a textbox into something usable
+		 */
 		protected function _parseTextbox() {
 
 		}
 
 
+		/**
+		 * Simple text rendering of a textbox's definition / contents
+		 */
 		public function __toString() {
 			$x = sprintf(
-					"Textbox: %s\n".
-					"u1: %02x - u6: %02x - u10: %02x\n".
-					"Position: %02x, %02x (%02x x %02x)\n".
-					"Cursor: %02x options, starts at %02x, %02x\n".
-					"Offset: %06x - Text pointer %04x (= %06x)\n".
-					"-----------------------\n%s\n-----------------------\n",
-					Utils::printableHex($this->headerData),
-					$this->u1, $this->u6, $this->u10,
-					$this->screenX, $this->screenY, $this->windowW, $this->windowH,
-					$this->cursorOptions, $this->cursorX, $this->cursorY,
-					$this->textboxOffset, $this->textPointer, $this->textOffset,
-					implode("", $this->text)
+					"Textbox"
 					);
 			return $x;
 		}
 
+		/**
+		 * Output the textbox as a pretty-looking grid,
+		 * resembling the game's screen
+		 */
 		public function prettyPrint() {
 			$grid					= array_fill(0, 28, array_fill(0, 32, null));
 
@@ -74,12 +77,10 @@
 
 
 			// Place the string
-			//$len	= mb_strlen($this->text);
 			$xp		= $bleft + 1;
 			$yp		= $btop + 1;
-			//for ($i = 0; $i < $len; $i++) {
+
 			foreach ($this->text as $char) {
-				//$char	= mb_substr($this->text, $i, 1);
 
 				if ($char == "゙" || $char == "゚") {
 					// Handle combining chars.
@@ -104,8 +105,6 @@
 					$grid[$yp][$xp]	= ($grid[$yp][$xp] ? "<s>". $grid[$yp][$xp] ."</s> " : "") . ($i == 0 ? "►" : "▻");
 				}
 			}
-
-			// mb_strlen, mb_substr
 
 			// Render the table
 			print "<table class='menugrid'>\n";
