@@ -16,6 +16,12 @@
 		protected	$_textOffsetROM	= null;
 		// And said text
 		protected	$_text			= null;
+
+		// Textbox's title
+		protected	$_titleOffset		= null;
+		protected	$_titleOffsetROM	= null;
+		protected	$_title				= null;
+
 		// Screen position
 		protected	$_position		= null;
 		// Cursor position / data
@@ -58,14 +64,11 @@
 
 						case 0x04:
 							// Unknown, two bytes
-							//$this->_unknown[]	= array(0x04, array($data->getI(2)));
-							// Text pointer for the actual text
-							$offset		= $data->getI(2);
-							$offsetROM	= 0x78000 + $offset;
-							$this->_textOffset	= $offset;
-							if (!$this->_textOffsetROM) $this->_textOffsetROM = $offsetROM;
-							break;							break;
-
+							// Some sort of pointer, usually to right after
+							// the header, just like normal text ($10).
+							// But it is very much NOT normal text.
+							$this->_unknown[]	= array(0x04, array($data->getI(2)));
+							break;
 
 						case 0x06:
 							// Cursor details. # options, starting X and Y position
@@ -77,8 +80,9 @@
 							break;
 
 						case 0x08:
-							// Unknown, two bytes
-							$this->_unknown[]	= array(0x08, array($data->getI(2)));
+							// Title of text box; placed across the top border?
+							$this->_titleOffset		= $data->getI(2);
+							$this->_titleOffsetROM	= 0x68000 + $this->_titleOffset;
 							break;
 
 						case 0x10:
@@ -105,6 +109,9 @@
 			if ($this->_textOffsetROM) {
 				$this->_text	= $this->_translator->getStringAtOffsetArray($this->_textOffsetROM);
 			}
+			if ($this->_titleOffsetROM) {
+				$this->_title	= $this->_translator->getStringAtOffsetArray($this->_titleOffsetROM);
+			}
 
 		}
 
@@ -124,12 +131,24 @@
 			if ($this->_textOffset) {
 				$out	.= sprintf("  Text: Pointer \$%04x (ROM ~ \$%06x)\n", $this->_textOffset, $this->_textOffsetROM);
 			}
+			if ($this->_titleOffset) {
+				$out	.= sprintf("  Title: Pointer \$%04x (ROM ~ \$%06x)\n", $this->_titleOffset, $this->_titleOffsetROM);
+			}
 			if ($this->_unknown) {
 				foreach ($this->_unknown as $uk) {
-					$out	.= sprintf("  Unknown \$%02x: %s\n", $uk[0], implode(", ", $uk[1]));
+					$uvo	= "";
+					foreach ($uk[1] as $uv) {
+						$uvo	.= sprintf(" %X", $uv);
+					}
+					$out	.= sprintf("  Unknown \$%02x: %s\n", $uk[0], $uvo);
 				}
 			}
-
+			if ($this->_title) {
+				$out	.= "  Title: \"". implode("", $this->_title) ."\"\n";
+			}
+			if ($this->_text) {
+				$out	.= "Text:\n----------------------------\n". implode("", $this->_text) ."\n----------------------------\n";
+			}
 			return $out;
 
 		}
@@ -169,24 +188,48 @@
 			}
 
 
-			// Place the string
-			$xp		= $bleft + 1;
-			$yp		= $btop + 1;
+			if ($this->_text) {
+				// Place the string
+				$xp		= $bleft + 1;
+				$yp		= $btop + 1;
+				foreach ($this->_text as $char) {
 
-			foreach ($this->_text as $char) {
+					if ($char == "゙" || $char == "゚") {
+						// Handle combining chars.
+						$grid[$yp - 1][$xp - 1]	= $char;
 
-				if ($char == "゙" || $char == "゚") {
-					// Handle combining chars.
-					$grid[$yp - 1][$xp - 1]	= $char;
+					} elseif ($char == "\n") {
+						// Newline
+						$yp++;
+						$xp	= $bleft + 1;
 
-				} elseif ($char == "\n") {
-					// Newline
-					$yp++;
-					$xp	= $bleft + 1;
+					} else {
+						$grid[$yp][$xp]	= $char;
+						$xp++;
+					}
+				}
+			}
 
-				} else {
-					$grid[$yp][$xp]	= $char;
-					$xp++;
+
+			if ($this->_title) {
+				// Place the string
+				$xp		= $bleft + 1;
+				$yp		= $btop;
+				foreach ($this->_title as $char) {
+
+					if ($char == "゙" || $char == "゚") {
+						// Handle combining chars.
+						$grid[$yp - 1][$xp - 1]	= $char;
+
+					} elseif ($char == "\n") {
+						// Newline
+						$yp++;
+						$xp	= $bleft + 1;
+
+					} else {
+						$grid[$yp][$xp]	= $char;
+						$xp++;
+					}
 				}
 			}
 
