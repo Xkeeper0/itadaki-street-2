@@ -67,6 +67,13 @@
 		}
 
 		/**
+		 * Returns true if no more data to read
+		 */
+		public function isEOF() {
+			return $this->_pointer >= $this->_length;
+		}
+
+		/**
 		 * Internal function to fetch data from the internal string
 		 */
 		protected function _fetch($len = 1) {
