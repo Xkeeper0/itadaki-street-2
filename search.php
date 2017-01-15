@@ -1,6 +1,6 @@
 <?php
 
-	require "ita2.php";
+	require "includes.php";
 	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
 	$rom	= file_get_contents("ita2.sfc");
 

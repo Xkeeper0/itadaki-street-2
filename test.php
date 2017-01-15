@@ -17,7 +17,7 @@
 
 <?php
 
-	require "ita2.php";
+	require "includes.php";
 
 	#header("Content-type: text/plain");
 
