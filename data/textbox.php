@@ -152,8 +152,7 @@
 			if ($this->_concatData) {
 				$outV	= "";
 				foreach ($this->_concatData as $i => $ccPtr) {
-					if ($i == 1) $outV .= ": ";
-					if ($i >= 2) $outV .= ", ";
+					if ($i >= 1) $outV .= "\n    ";
 					$outV	.= sprintf("\$%04x (\$%06x)", $ccPtr[0], $ccPtr[1]);
 				}
 				$out	.= sprintf("  Concat'd strings: %s\n", $outV);
