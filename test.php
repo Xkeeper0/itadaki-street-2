@@ -1,20 +1,32 @@
-<style type="text/css">
-	.menugrid {
-		background: #000;
-		border-spacing: 1px;
-		color: white;
-	}
-	.menugrid td {
-		background: #222;
-		width: 1.5em;
-		height: 1.5em;
-		text-align: center;
-	}
-	.menugrid td.c {
-		background: #224;
-	}
-</style>
-
+<!doctype html>
+<html>
+<head>
+	<title>itadaki street 2 textbox viewer</title>
+	<meta charset="utf-8">
+	<style type="text/css">
+		body {
+			font-family:	Verdana, Tahoma, sans-serif;
+		}
+		pre	{
+			font-family:	Ubuntu Mono, Consolas, Monaco, Courier New, monospace;
+		}
+		.menugrid {
+			background: #000;
+			border-spacing: 1px;
+			color: white;
+		}
+		.menugrid td {
+			background: #222;
+			width: 1.5em;
+			height: 1.5em;
+			text-align: center;
+		}
+		.menugrid td.c {
+			background: #224;
+		}
+	</style>
+</head>
+<body>
 <?php
 
 	require "includes.php";
@@ -54,3 +66,11 @@
 
 	// ?  X  Y  W  H  ?? cO cX cY
 	// 02 01 0d 0c 0d 06 05 02 0f 10 52 b5 00 fe 20
+
+?>
+<br>
+<br>
+<br>
+<a href="https://github.com/Xkeeper0/itadaki-street-2">view this project on github</a>
+</body>
+</html>
