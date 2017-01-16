@@ -73,7 +73,7 @@
 
 
 
-		protected function _romI($o, $l = 1) {
+		public function romI($o, $l = 1) {
 			if ($l == 1) {
 				return ord($this->_rom{$o});
 			} else {
@@ -81,7 +81,7 @@
 			}
 		}
 
-		protected function _romS($o, $l = 1) {
+		public function romS($o, $l = 1) {
 			return substr($this->_rom, $o, $l);
 		}
 

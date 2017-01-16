@@ -27,6 +27,7 @@
 		// Cursor position / data
 		protected	$_cursor		= null;
 
+		protected	$_concatData	= array();
 		protected	$_unknown		= array();
 
 		/**
@@ -63,11 +64,27 @@
 							break;
 
 						case 0x04:
-							// Unknown, two bytes
-							// Some sort of pointer, usually to right after
-							// the header, just like normal text ($10).
-							// But it is very much NOT normal text.
-							$this->_unknown[]	= array(0x04, array($data->getI(2)));
+							// Two byte pointer to, sigh, more pointers.
+							// Basically, concatenate the strings from those pointers.
+							// (It's a zero-terminated list)
+							$pointersPointer	= $data->getI(2);
+							$tmpCurrentPointer	= $pointersPointer + 0x68000;
+							$this->_concatData[]	= array($pointersPointer, $tmpCurrentPointer);
+							$tmpText			= array();
+							// Continuously fetch stuff
+							while ($tmpPointerValue = $this->_translator->romI($tmpCurrentPointer, 2)) {
+								if ($tmpPointerValue >= 0x8000) {
+									$tmpPointerValueROM	= $tmpPointerValue + 0x68000;
+									$tmpText			= array_merge($tmpText, $this->_translator->getStringAtOffsetArray($tmpPointerValueROM));
+								} else {
+									$tmpText[]			= sprintf("\$%04X", $tmpPointerValue);
+									$tmpPointerValueROM	= $tmpPointerValue;
+								}
+								$this->_concatData[]	= array($tmpPointerValue, $tmpPointerValueROM);
+								$tmpCurrentPointer	+= 2;
+							}
+
+							$this->_text	= $tmpText;
 							break;
 
 						case 0x06:
@@ -83,6 +100,7 @@
 							// Title of text box; placed across the top border?
 							$this->_titleOffset		= $data->getI(2);
 							$this->_titleOffsetROM	= 0x68000 + $this->_titleOffset;
+							$this->_title	= $this->_translator->getStringAtOffsetArray($this->_titleOffsetROM);
 							break;
 
 						case 0x10:
@@ -106,13 +124,10 @@
 				print $e->getMessage() ."\n";
 			}
 
+			// Gross hack for overriding the text stuff
 			if ($this->_textOffsetROM) {
 				$this->_text	= $this->_translator->getStringAtOffsetArray($this->_textOffsetROM);
 			}
-			if ($this->_titleOffsetROM) {
-				$this->_title	= $this->_translator->getStringAtOffsetArray($this->_titleOffsetROM);
-			}
-
 		}
 
 
@@ -133,6 +148,15 @@
 			}
 			if ($this->_titleOffset) {
 				$out	.= sprintf("  Title: Pointer \$%04x (ROM ~ \$%06x)\n", $this->_titleOffset, $this->_titleOffsetROM);
+			}
+			if ($this->_concatData) {
+				$outV	= "";
+				foreach ($this->_concatData as $i => $ccPtr) {
+					if ($i == 1) $outV .= ": ";
+					if ($i >= 2) $outV .= ", ";
+					$outV	.= sprintf("\$%04x (\$%06x)", $ccPtr[0], $ccPtr[1]);
+				}
+				$out	.= sprintf("  Concat'd strings: %s\n", $outV);
 			}
 			if ($this->_unknown) {
 				foreach ($this->_unknown as $uk) {
