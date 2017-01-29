@@ -6,28 +6,25 @@
 
 		// Translator class to handle text
 		protected	$_translator	= null;
+
 		// Offset into ROM for this textbox
 		protected	$_offset		= null;
 		// Data from the textbox definition
 		protected	$_headerData	= null;
-
 		// Text
 		protected	$_text			= null;
-
 		// Big text
 		protected	$_bigText		= null;
-
 		// Textbox's title
 		protected	$_title			= null;
-
 		// Screen position
 		protected	$_position		= null;
 		// Cursor position / data
 		protected	$_cursor		= null;
+		// ?
+		protected	$_numberInput	= null;
 
-		protected	$_concatData	= array();
 		protected	$_rawParams		= array();
-		protected	$_unknown		= array();
 
 		/**
 		 *
@@ -121,17 +118,27 @@
 							break;
 
 						case 0x0a:
-							// ?
-							$data->getI();
-							$data->getI();
-							$data->getI();
+							// Seems to be a horizontal number input,
+							// like when investing or w/e
+							$posX			= $data->getI();
+							$posY			= $data->getI();
+							$unk			= $data->getI();
+							$this->_numberInput	= array(
+								'x'			=> $posX,
+								'y'			=> $posY,
+								'length'	=> $unk,
+								);
 							break;
 
 						case 0x0c:
 							// Big textbox text offset
-							$offset		= $data->getI(2);
-							$offsetROM	= 0x68000 + $offset;
-							$this->_bigTextOffset	= $offset;
+							$offset			= $data->getI(2);
+							$offsetROM		= 0x68000 + $offset;
+							$this->_bigText	= array(
+								'offset'	=> $offset,
+								'offsetROM'	=> $offsetROM,
+								'text'		=> $this->_translator->getBigText($offsetROM),
+								);
 							break;
 
 						case 0x0e:
@@ -148,10 +155,16 @@
 							// Text pointer for the actual text
 							$offset		= $data->getI(2);
 							$offsetROM	= 0x68000 + $offset;
+							$text		= $this->_translator->getStringAtOffsetArray($offsetROM);
+							if ($offset < 0x8000) {
+								// This is not actually text, uh oh
+								$text	= array(sprintf("<span title='\$%04X' class='specialChar'>�</span>", $offset));
+								$offsetROM	= false;
+							}
 							$this->_text	= array(
 								'offset'	=> $offset,
 								'offsetROM'	=> $offsetROM,
-								'text'		=> $this->_translator->getStringAtOffsetArray($offsetROM),
+								'text'		=> $text,
 								);
 							break;
 
@@ -216,26 +229,24 @@
 				}
 			}
 
-			if ($this->_bigTextOffset) {
-				$out	.= sprintf("  UNHANDLED BIGTEXT: %04X\n", $this->_bigTextOffset);
-			}
-
-			if ($this->_unknown) {
-				foreach ($this->_unknown as $uk) {
-					$uvo	= "";
-					foreach ($uk[1] as $uv) {
-						$uvo	.= sprintf(" %X", $uv);
-					}
-					$out	.= sprintf("  Unknown \$%02x: %s\n", $uk[0], $uvo);
-				}
-			}
-
 			if ($this->_title['text']) {
 				$out	.= "\n----------------------------\n". implode("", $this->_title['text']) ."\n";
 			}
 			if ($this->_text) {
 				$out	.= "\n----------------------------\n". implode("", $this->_text['text']) ."\n----------------------------\n";
 			}
+
+
+			if ($this->_bigText) {
+				$out	.= sprintf("  Big text: \$%04X (ROM: \$%06X)\n", $this->_bigText['offset'], $this->_bigText['offsetROM']);
+				foreach ($this->_bigText['text'] as $line) {
+					foreach ($line as $char) {
+						$out	.= sprintf('<img src="bigtext.php?i=0x%03x" title="$%03x">', $char, $char);
+					}
+					$out	.= "\n";
+				}
+			}
+
 			return $out;
 
 		}
@@ -327,6 +338,10 @@
 
 					$grid[$yp][$xp]	= ($grid[$yp][$xp] ? "<s>". $grid[$yp][$xp] ."</s> " : "") . ($i == 0 ? "►" : "▻");
 				}
+			}
+
+			if ($this->_numberInput) {
+				$grid[$this->_numberInput['y']][$this->_numberInput['x']]	= sprintf("%02X", $this->_numberInput['length']);
 			}
 
 			// Render the table

@@ -32,17 +32,27 @@
 		$to	= hexdec($_GET['to']);
 	}
 
+	try {
 
-	$tb		= $itadaki->getTextbox($o, $to);
-	print $tb;
+		$tb		= $itadaki->getTextbox($o, $to);
+		print $tb;
 
+	} catch (\Exception $e) {
+		print "Err: ". $e->getMessage();
+	}
 ?>
 			</pre>
 		</td>
 		<td style=' vertical-align: top;'>
 <?php
 
+try {
 	$tb->prettyPrint();
+
+} catch (\Exception $e) {
+	print "Err: ". $e->getMessage();
+}
+
 
 ?>
 		</td>
