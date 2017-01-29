@@ -67,6 +67,13 @@
 		}
 
 		/**
+		 * Get current position
+		 */
+		public function position() {
+			return $this->_pointer;
+		}
+
+		/**
 		 * Returns true if no more data to read
 		 */
 		public function isEOF() {

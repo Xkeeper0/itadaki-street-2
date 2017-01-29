@@ -51,7 +51,8 @@
 		 * Decode the header of a textbox into something usable
 		 */
 		protected function _parseTextbox() {
-			$data		= new \DataSeeker($this->_headerData);
+			// 256 bytes chosen as arbitrary limit, should never be reached
+			$data		= new \DataSeeker($this->_translator->romS($this->_offset, 0x100));
 
 			try {
 				while (!$data->isEOF()) {
@@ -117,10 +118,20 @@
 							break;
 
 						case 0x0c:
-							// ?
+							// Big textbox text offset
 							$offset		= $data->getI(2);
 							$offsetROM	= 0x68000 + $offset;
 							$this->_bigTextOffset	= $offset;
+							break;
+
+						case 0x0e:
+							// ?
+							$data->getI();
+							$data->getI();
+							$data->getI();
+							$data->getI();
+							$data->getI();
+							$data->getI();
 							break;
 
 						case 0x10:
@@ -131,6 +142,7 @@
 							if (!$this->_textOffsetROM) $this->_textOffsetROM = $offsetROM;
 							break;
 
+						case 0x82:	// Kludge for weird textboxes. Hey Devin!
 						case 0x00:
 							// End
 							break 2;
@@ -140,6 +152,10 @@
 							break;
 					}
 				}
+
+				$headerLen	= $data->position();
+				$data->seek();
+				$this->_headerData	= $data->getS($headerLen);
 			} catch (\Exception $e) {
 				print $e->getMessage() ."\n";
 			}
@@ -176,6 +192,9 @@
 					$outV	.= sprintf("\$%04x (\$%06x)", $ccPtr[0], $ccPtr[1]);
 				}
 				$out	.= sprintf("  Concat'd strings: %s\n", $outV);
+			}
+			if ($this->_bigTextOffset) {
+				$out	.= sprintf("  UNHANDLED BIGTEXT: %04X\n", $this->_bigTextOffset);
 			}
 			if ($this->_unknown) {
 				foreach ($this->_unknown as $uk) {
