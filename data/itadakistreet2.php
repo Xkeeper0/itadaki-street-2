@@ -5,13 +5,10 @@
 	 */
 	class ItadakiStreet2 extends Translator {
 
-		public function getTextbox($offset, $textOffset = null) {
+		public function getTextbox($offset) {
 
-			$terminator		= strpos($this->_rom, "\0", $offset);
-			$dataLen		= $terminator - $offset;
-			$data			= substr($this->_rom, $offset, $dataLen + 1);
+			return new ItadakiStreet2\Textbox($this, $offset);
 
-			return new ItadakiStreet2\Textbox($this, $offset, $data, $textOffset);
 		}
 
 	}

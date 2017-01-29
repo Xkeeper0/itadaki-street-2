@@ -11,22 +11,14 @@
 		// Data from the textbox definition
 		protected	$_headerData	= null;
 
-		// Offset to the textbox's... text
-		protected	$_textOffset	= null;
-		protected	$_textOffsetROM	= null;
-		// And said text
+		// Text
 		protected	$_text			= null;
 
-
-		// Used for big textbox
-		protected	$_bigTextOffset		= null;
-		protected	$_bigTextOffsetROM	= null;
-		protected	$_bigText			= null;
+		// Big text
+		protected	$_bigText		= null;
 
 		// Textbox's title
-		protected	$_titleOffset		= null;
-		protected	$_titleOffsetROM	= null;
-		protected	$_title				= null;
+		protected	$_title			= null;
 
 		// Screen position
 		protected	$_position		= null;
@@ -34,15 +26,15 @@
 		protected	$_cursor		= null;
 
 		protected	$_concatData	= array();
+		protected	$_rawParams		= array();
 		protected	$_unknown		= array();
 
 		/**
 		 *
 		 */
-		public function __construct(\ItadakiStreet2 $translator, $offset, $header, $textOffsetROM = null) {
+		public function __construct(\ItadakiStreet2 $translator, $offset, $textOffsetROM = null) {
 			$this->_translator		= $translator;
 			$this->_offset			= $offset;
-			$this->_headerData		= $header;
 			$this->_textOffsetROM	= $textOffsetROM;
 			$this->_parseTextbox();
 		}
@@ -56,6 +48,7 @@
 
 			try {
 				while (!$data->isEOF()) {
+					$start	= $data->position();
 					$dtype	= $data->getI();
 
 					switch ($dtype) {
@@ -76,22 +69,35 @@
 							// (It's a zero-terminated list)
 							$pointersPointer	= $data->getI(2);
 							$tmpCurrentPointer	= $pointersPointer + 0x68000;
-							$this->_concatData[]	= array($pointersPointer, $tmpCurrentPointer);
+							$concatTemp			= array();
 							$tmpText			= array();
+
 							// Continuously fetch stuff
 							while ($tmpPointerValue = $this->_translator->romI($tmpCurrentPointer, 2)) {
 								if ($tmpPointerValue >= 0x8000) {
 									$tmpPointerValueROM	= $tmpPointerValue + 0x68000;
-									$tmpText			= array_merge($tmpText, $this->_translator->getStringAtOffsetArray($tmpPointerValueROM));
+									$text				= $this->_translator->getStringAtOffsetArray($tmpPointerValueROM);
 								} else {
-									$tmpText[]			= sprintf("\$%04X", $tmpPointerValue);
+									$text				= array(sprintf("<span title='\$%04X' class='specialChar'>�</span>", $tmpPointerValue));
 									$tmpPointerValueROM	= $tmpPointerValue;
 								}
-								$this->_concatData[]	= array($tmpPointerValue, $tmpPointerValueROM);
+								$tmpText			= array_merge($tmpText, $text);
+								$concatTemp[]		= array(
+									'offset'	=> $tmpPointerValue,
+									'offsetROM'	=> $tmpPointerValueROM,
+									'text'		=> $text,
+									);
 								$tmpCurrentPointer	+= 2;
 							}
 
-							$this->_text	= $tmpText;
+							$this->_text	= array(
+								'text'				=> $tmpText,
+								'concat'			=> array(
+									'offset'			=> $pointersPointer,
+									'offsetROM'			=> $tmpCurrentPointer,
+									'strings'			=> $concatTemp,
+									),
+								);
 							break;
 
 						case 0x06:
@@ -104,10 +110,14 @@
 							break;
 
 						case 0x08:
-							// Title of text box; placed across the top border?
-							$this->_titleOffset		= $data->getI(2);
-							$this->_titleOffsetROM	= 0x68000 + $this->_titleOffset;
-							$this->_title	= $this->_translator->getStringAtOffsetArray($this->_titleOffsetROM);
+							// Title of text box; placed across the top border
+							$offset			= $data->getI(2);
+							$offsetROM		= 0x68000 + $offset;
+							$this->_title	= array(
+								'offset'	=> $offset,
+								'offsetROM'	=> $offsetROM,
+								'text'		=> $this->_translator->getStringAtOffsetArray($offsetROM),
+							);
 							break;
 
 						case 0x0a:
@@ -138,8 +148,11 @@
 							// Text pointer for the actual text
 							$offset		= $data->getI(2);
 							$offsetROM	= 0x68000 + $offset;
-							$this->_textOffset	= $offset;
-							if (!$this->_textOffsetROM) $this->_textOffsetROM = $offsetROM;
+							$this->_text	= array(
+								'offset'	=> $offset,
+								'offsetROM'	=> $offsetROM,
+								'text'		=> $this->_translator->getStringAtOffsetArray($offsetROM),
+								);
 							break;
 
 						case 0x82:	// Kludge for weird textboxes. Hey Devin!
@@ -151,6 +164,12 @@
 							throw new \Exception(sprintf("Unhandled header argument \$%02x", $dtype));
 							break;
 					}
+
+					$tmp	= $data->position();
+					$data->seek($start);
+					$this->_rawParams[]	= $data->getS($tmp - $start);
+					$data->seek($tmp);
+
 				}
 
 				$headerLen	= $data->position();
@@ -160,10 +179,6 @@
 				print $e->getMessage() ."\n";
 			}
 
-			// Gross hack for overriding the text stuff
-			if ($this->_textOffsetROM) {
-				$this->_text	= $this->_translator->getStringAtOffsetArray($this->_textOffsetROM);
-			}
 		}
 
 
@@ -172,30 +187,39 @@
 		 */
 		public function __toString() {
 
-			$out	= sprintf("Textbox, offset \$%06X, header [%s]\n", $this->_offset, \Utils::printableHex($this->_headerData));
+			$paramsText		= "";
+			foreach ($this->_rawParams as $param) {
+				$paramsText	.= ($paramsText ? ", " : "") . \Utils::printableHex($param);
+			}
+
+			$out	= sprintf("Textbox, offset \$%06X, header [%s]\n", $this->_offset, $paramsText);
+
+			// This is kind of an ugly mess, but there isn't too much of a better
+			// way to do it I think :/
+
 			if ($this->_position) {
-				$out	.= sprintf("  Position: %d, %d, size %d x %d\n", $this->_position['x'], $this->_position['y'], $this->_position['w'], $this->_position['h']);
+				$out	.= sprintf("  Position: (%d, %d), size %d x %d\n", $this->_position['x'], $this->_position['y'], $this->_position['w'], $this->_position['h']);
 			}
 			if ($this->_cursor) {
-				$out	.= sprintf("  Cursor: %d options, position %d x %d\n", $this->_cursor['options'], $this->_cursor['x'], $this->_cursor['y']);
+				$out	.= sprintf("  Cursor: %d options, position (%d, %d)\n", $this->_cursor['options'], $this->_cursor['x'], $this->_cursor['y']);
 			}
-			if ($this->_textOffset) {
-				$out	.= sprintf("  Text: Pointer \$%04x (ROM ~ \$%06x)\n", $this->_textOffset, $this->_textOffsetROM);
+			if (isset($this->_text['offset'])) {
+				$out	.= sprintf("  Text: Pointer \$%04x (ROM: \$%06x)\n", $this->_text['offset'], $this->_text['offsetROM']);
 			}
-			if ($this->_titleOffset) {
-				$out	.= sprintf("  Title: Pointer \$%04x (ROM ~ \$%06x)\n", $this->_titleOffset, $this->_titleOffsetROM);
+			if ($this->_title) {
+				$out	.= sprintf("  Title: Pointer \$%04x (ROM: \$%06x)\n", $this->_title['offset'], $this->_title['offsetROM']);
 			}
-			if ($this->_concatData) {
-				$outV	= "";
-				foreach ($this->_concatData as $i => $ccPtr) {
-					if ($i >= 1) $outV .= "\n    ";
-					$outV	.= sprintf("\$%04x (\$%06x)", $ccPtr[0], $ccPtr[1]);
+			if (isset($this->_text['concat'])) {
+				$out	.= sprintf("  Concatenation: Pointer \$%04X (ROM: \$%06x)\n", $this->_text['concat']['offset'], $this->_text['concat']['offsetROM']);
+				foreach ($this->_text['concat']['strings'] as $str) {
+					$out	.= sprintf("    \$%04x (\$%06x) \"%s\"\n", $str['offset'], $str['offsetROM'], str_replace("\n", '\n', implode("", $str['text'])));
 				}
-				$out	.= sprintf("  Concat'd strings: %s\n", $outV);
 			}
+
 			if ($this->_bigTextOffset) {
 				$out	.= sprintf("  UNHANDLED BIGTEXT: %04X\n", $this->_bigTextOffset);
 			}
+
 			if ($this->_unknown) {
 				foreach ($this->_unknown as $uk) {
 					$uvo	= "";
@@ -205,11 +229,12 @@
 					$out	.= sprintf("  Unknown \$%02x: %s\n", $uk[0], $uvo);
 				}
 			}
-			if ($this->_title) {
-				$out	.= "  Title: \"". implode("", $this->_title) ."\"\n";
+
+			if ($this->_title['text']) {
+				$out	.= "\n----------------------------\n". implode("", $this->_title['text']) ."\n";
 			}
 			if ($this->_text) {
-				$out	.= "Text:\n----------------------------\n". implode("", $this->_text) ."\n----------------------------\n";
+				$out	.= "\n----------------------------\n". implode("", $this->_text['text']) ."\n----------------------------\n";
 			}
 			return $out;
 
@@ -254,7 +279,7 @@
 				// Place the string
 				$xp		= $bleft + 1;
 				$yp		= $btop + 1;
-				foreach ($this->_text as $char) {
+				foreach ($this->_text['text'] as $char) {
 
 					if ($char == "゙" || $char == "゚") {
 						// Handle combining chars.
@@ -277,7 +302,7 @@
 				// Place the string
 				$xp		= $bleft + 1;
 				$yp		= $btop;
-				foreach ($this->_title as $char) {
+				foreach ($this->_title['text'] as $char) {
 
 					if ($char == "゙" || $char == "゚") {
 						// Handle combining chars.
