@@ -17,6 +17,12 @@
 		// And said text
 		protected	$_text			= null;
 
+
+		// Used for big textbox
+		protected	$_bigTextOffset		= null;
+		protected	$_bigTextOffsetROM	= null;
+		protected	$_bigText			= null;
+
 		// Textbox's title
 		protected	$_titleOffset		= null;
 		protected	$_titleOffsetROM	= null;
@@ -101,6 +107,20 @@
 							$this->_titleOffset		= $data->getI(2);
 							$this->_titleOffsetROM	= 0x68000 + $this->_titleOffset;
 							$this->_title	= $this->_translator->getStringAtOffsetArray($this->_titleOffsetROM);
+							break;
+
+						case 0x0a:
+							// ?
+							$data->getI();
+							$data->getI();
+							$data->getI();
+							break;
+
+						case 0x0c:
+							// ?
+							$offset		= $data->getI(2);
+							$offsetROM	= 0x68000 + $offset;
+							$this->_bigTextOffset	= $offset;
 							break;
 
 						case 0x10:
