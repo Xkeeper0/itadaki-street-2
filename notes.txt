@@ -1,0 +1,44 @@
+Notes:
+
+
+	0x702E1: Bigtext start for first menu option's player count select
+		07 6c09 600c 2409 c20a 2400 3600 a611
+		07 6c00 4014 7a0a 5214 0e0a b00a 6e04
+		00
+
+		07 is length of line
+		Two bytes for position of character, multiples of $12
+
+
+Raspberry, [28.01.17 21:01]
+	0x0191E8 graphics
+	 - minimap tiles
+
+	0x042C00 graphics
+	 - movement arrows
+	 - dice
+	 - area markers
+	 - intro plane
+	 - player sprites
+	 - a font?
+	 - congratulations ball
+
+	0x05FF00 graphics
+	 - chance card graphics
+
+	0x0E6000 graphics
+	 - animated map tiles
+
+
+	Text:
+	0x072BA4 character profiles
+	0x072B50 "Finished swapping order"
+	0x072B72 "Swapping order"
+	0x07371F Name entry characters katakana
+	0x0737CB Name entry characters hiragana
+
+	0x007F84 hex digits
+	0x007FC0 "ITADAKI STREET 2"
+
+
+	window @ 0x73702 for player select
