@@ -108,8 +108,11 @@
 		.t-2.d-2	{	background: url('squares/suit-2.png');	}
 		.t-2.d-3	{	background: url('squares/suit-3.png');	}
 
+		.f-0, .f-1, .f-2 { display: none; }
+		.f-0-toggle:checked ~ .square.f-0 { display: block; }
+		.f-1-toggle:checked ~ .square.f-1 { display: block; }
+		.f-2-toggle:checked ~ .square.f-2 { display: block; }
 </style>
-
 
 <?php
 
@@ -298,12 +301,6 @@
 		print " &middot; <a href='?s=$i'>$i</a>";
 	}
 
-	if ($streetNumber == 12 or $streetNumber == 5) {
-		print "<br>this map uses floors and will probably look like shit";
-	}
-
-	print "<br>";
-
 	//$test		= $itadaki->getDecompressor(0x15b700);
 	$test		= $itadaki->getDecompressor($streetOffsets[$streetNumber]);
 	$streetData	= $test->decompress();
@@ -312,25 +309,35 @@
 	$street->OH_GOD_DONT_FLOOD_THE_PAGE();
 
 ?>
-
-
 <div class="street">
 <?php
+
+	$floors	= 1;
+	if ($streetNumber == 5) $floors = 2;
+	if ($streetNumber == 12) $floors = 3;
+	print '<input type="radio" name="floors" checked="checked" class="f-0-toggle"'. ($floors == 1 ? ' disabled="disable"' : "") .'> 1F';
+	for ($i = 1; $i < $floors; $i++) {
+		print " <input type=\"radio\" name=\"floors\" class=\"f-{$i}-toggle\"> ". ($i + 1) ."F";
+	}
 
 	foreach ($street->squares as $id => $square) {
 		$px		= $square->position['x'] / 2 * 40;
 		$py		= $square->position['y'] / 2 * 40;
 
 		$prices	= ($square->type == 0 ? "<div class='prices'>{$square->value}<br>{$square->price}</div>" : "");
+		$name	= implode("", $square->name);
 
 		print <<<E
-	<div class="square d-{$square->district} t-{$square->type}" style="left: {$px}px; top: {$py}px;">
+	<div class="square d-{$square->district} t-{$square->type} f-{$square->floor}" style="left: {$px}px; top: {$py}px;">
 		<div class="id">{$id}</div>
 		{$prices}
-		<!--{$square->type}, {$square->district}-->
+		{$square->floor}
 		<div class="data">
+			{$name}
+			<br>type {$square->type}
+			<br>district #{$square->district}
+			<br>
 E;
-		print implode("", $square->name) ."<br>";
 		$t1		= "";
 		$t2		= "";
 		foreach ($square->unknowns as $ui => $uv) {
