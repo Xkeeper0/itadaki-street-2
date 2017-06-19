@@ -71,6 +71,28 @@
 		}
 
 
+		/**
+		* Translate a given string into an array of characters
+		*/
+		public function translateStringToArray($string) {
+			$out	= array();
+			$length	= strlen($string);
+			for ($i = 0; $i < $length; $i++) {
+				$byte	= ord($string{$i});
+				$out[]	= (isset($this->_table[$byte])) ? $this->_table[$byte] : sprintf("[%02X]", $byte);
+			}
+
+			return $out;
+		}
+
+
+		/**
+		* Translate a given string, auto-imploding it
+		*/
+		public function translateString($string) {
+			return implode("", $this->translateStringToArray($string));
+		}
+
 
 
 		public function romI($o, $l = 1) {
@@ -83,6 +105,10 @@
 
 		public function romS($o, $l = 1) {
 			return substr($this->_rom, $o, $l);
+		}
+
+		public function &rom() {
+			return $this->_rom;
 		}
 
 
