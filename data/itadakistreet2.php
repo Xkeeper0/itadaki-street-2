@@ -31,4 +31,9 @@
 			return $out;
 		}
 
+
+		public function getDecompressor($offset) {
+			return new ItadakiStreet2\Decompressor($this->_rom, $offset);
+		}
+
 	}

@@ -6,4 +6,5 @@
 	require "data/itadakistreet2.php";
 	require "data/utils.php";
 	require "data/textbox.php";
+	require "data/decompressor.php";
 	require "html/html.php";
