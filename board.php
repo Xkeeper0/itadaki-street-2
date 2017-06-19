@@ -112,6 +112,9 @@
 		.f-0-toggle:checked ~ .square.f-0 { display: block; }
 		.f-1-toggle:checked ~ .square.f-1 { display: block; }
 		.f-2-toggle:checked ~ .square.f-2 { display: block; }
+
+		.showspam ~ pre			{	display:	none;		}
+		.showspam:checked ~ pre {	display:	block;		}
 </style>
 
 <?php
@@ -315,9 +318,9 @@
 	$floors	= 1;
 	if ($streetNumber == 5) $floors = 2;
 	if ($streetNumber == 12) $floors = 3;
-	print '<input type="radio" name="floors" checked="checked" class="f-0-toggle"'. ($floors == 1 ? ' disabled="disable"' : "") .'> 1F';
+	print '<input type="radio" name="floors" checked="checked" id="f-0-toggle" class="f-0-toggle"'. ($floors == 1 ? ' disabled="disable"' : "") .'><label for="f-0-toggle"> 1F</label>';
 	for ($i = 1; $i < $floors; $i++) {
-		print " <input type=\"radio\" name=\"floors\" class=\"f-{$i}-toggle\"> ". ($i + 1) ."F";
+		print " <input type=\"radio\" name=\"floors\" class=\"f-{$i}-toggle\" id=\"f-{$i}-toggle\"><label for=\"f-{$i}-toggle\"> ". ($i + 1) ."F</label>";
 	}
 
 	foreach ($street->squares as $id => $square) {
@@ -361,7 +364,9 @@ E;
 	}
 
 ?>
-</div><pre>
+</div>
+<br><input type="checkbox" class="showspam" id="showspam"><label for="showspam"> Show object dump</label>
+<pre>
 <?php
 
 	print_r($street);
