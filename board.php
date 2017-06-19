@@ -16,7 +16,7 @@
 	.street {
 		position:	relative;
 		width:		100%;
-		height:		1200px;
+		height:		1280px;
 		background:	#333;
 		}
 
@@ -80,21 +80,33 @@
 		background:		rgba(0, 0, 0, .3);
 		}
 
-		.d-0 {	background-color:	#ad2952;	}
-		.d-1 {	background-color:	#b55229;	}
-		.d-2 {	background-color:	#948421;	}
-		.d-3 {	background-color:	#4a9439;	}
-		.d-4 {	background-color:	#29847b;	}
-		.d-219 {	background-color:	#000000;	}
+		/* The district colors wrap around after 8 */
+		.d-0, .d-8	{	background-color:	#ad2952;	}
+		.d-1, .d-9	{	background-color:	#b55229;	}
+		.d-2, .d-10	{	background-color:	#948421;	}
+		.d-3, .d-11	{	background-color:	#4a9439;	}
+		.d-4, .d-12	{	background-color:	#29847b;	}
+		.d-5, .d-13	{	background-color:	#296bad;	}
+		.d-6, .d-14	{	background-color:	#6b42ad;	}
+		.d-7, .d-15	{	background-color:	#8c397b;	}
 
-		.t-1 {	background: url('squares/1.png');	}
-		.t-2 {	background: url('squares/2.png');	}
-		.t-5 {	background: url('squares/5.png');	}
+		/* "null" districts */
+		.d-219		{	background-color:	#000000;	}
 
-		.t-2.d-0 {	background: url('squares/suit-0.png');	}
-		.t-2.d-1 {	background: url('squares/suit-1.png');	}
-		.t-2.d-2 {	background: url('squares/suit-2.png');	}
-		.t-2.d-3 {	background: url('squares/suit-3.png');	}
+		.t-1		{	background: url('squares/1.png');	}
+		.t-2		{	background: url('squares/2.png');	}
+		.t-3		{	background: url('squares/3.png');	}
+		.t-4		{	background: url('squares/4.png');	}
+		.t-5		{	background: url('squares/5.png');	}
+		.t-6		{	background: url('squares/6.png');	}
+		.t-7		{	background: url('squares/7.png');	}
+		.t-9		{	background: url('squares/9.png');	}
+		.t-16		{	background-image: url('squares/16.png');	}
+
+		.t-2.d-0	{	background: url('squares/suit-0.png');	}
+		.t-2.d-1	{	background: url('squares/suit-1.png');	}
+		.t-2.d-2	{	background: url('squares/suit-2.png');	}
+		.t-2.d-3	{	background: url('squares/suit-3.png');	}
 
 </style>
 
@@ -159,6 +171,11 @@
 		}
 
 
+		/**
+		* this function unsets refs to the big translator object
+		* because nobody likes several megabytes of random junk in
+		* their output
+		*/
 		public function OH_GOD_DONT_FLOOD_THE_PAGE() {
 			unset($this->_translator);
 			unset($this->_rom);
@@ -253,9 +270,42 @@
 
 	}
 
+	$streetOffsets	= array(
+						0x15B700,
+						0x15B9B0,
+						0x15BD16,
+						0x15C1BD,
+						0x15C4C9,
+						0x15C9CA,
+						0x15CEC0,
+						0x15D32E,
+						0x15D883,
+						0x15DEDC,
+						0x15E3BA,
+						0x15E8CB,
+						0x15EDFC,
+						0x15F35E,
+						0x15F976,
+					);
+
+	$streetNumber	= 13;
+	if (isset($_GET['s']) && $_GET['s'] >= 0 && $_GET['s'] <= 14) {
+		$streetNumber	= intval($_GET['s']);
+	}
+
+	print "view street: ";
+	for ($i = 0; $i <= 14; $i++) {
+		print " &middot; <a href='?s=$i'>$i</a>";
+	}
+
+	if ($streetNumber == 12 or $streetNumber == 5) {
+		print "<br>this map uses floors and will probably look like shit";
+	}
+
+	print "<br>";
 
 	//$test		= $itadaki->getDecompressor(0x15b700);
-	$test		= $itadaki->getDecompressor(0x15F35E);
+	$test		= $itadaki->getDecompressor($streetOffsets[$streetNumber]);
 	$streetData	= $test->decompress();
 
 	$street		= new Street($itadaki, $streetData);
@@ -277,7 +327,7 @@
 	<div class="square d-{$square->district} t-{$square->type}" style="left: {$px}px; top: {$py}px;">
 		<div class="id">{$id}</div>
 		{$prices}
-		{$square->type}, {$square->district}
+		<!--{$square->type}, {$square->district}-->
 		<div class="data">
 E;
 		print implode("", $square->name) ."<br>";
