@@ -36,14 +36,9 @@
 			$this->_writeLength		= $this->_readNextByte(true);
 			$this->_log(sprintf("Expected size: %04x bytes", $this->_writeLength));
 
-			// Burn another pointless read
+			// Read two unused (!) bytes. What were these used for??
 			$this->_readNextByte();
-
-			// Burn one more byte??
 			$this->_readNextByte();
-
-			// Get the next rotary thingy
-			//$this->_getNextRotatyThing();
 
 			while ($this->_writePointer < $this->_writeLength) {
 				//$this->_log(sprintf("Write pointer: %04x", $this->_writePointer));
