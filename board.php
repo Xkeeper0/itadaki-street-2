@@ -6,12 +6,25 @@
 
 	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
 
+	function db($v) {
+		if ($v == 0xdb) {
+			return "<del>n/a</del>";
+		} else {
+			return $v;
+		}
+	}
+
 
 ?>
 
 
 
 <style type="text/css">
+
+	del	{
+		opacity:	0.5;
+		font-style:	italic;
+		}
 
 	.street {
 		position:	relative;
@@ -93,20 +106,20 @@
 		/* "null" districts */
 		.d-219		{	background-color:	#000000;	}
 
-		.t-1		{	background: url('squares/1.png');	}
-		.t-2		{	background: url('squares/2.png');	}
-		.t-3		{	background: url('squares/3.png');	}
-		.t-4		{	background: url('squares/4.png');	}
-		.t-5		{	background: url('squares/5.png');	}
-		.t-6		{	background: url('squares/6.png');	}
-		.t-7		{	background: url('squares/7.png');	}
-		.t-9		{	background: url('squares/9.png');	}
+		.t-1		{	background-image: url('squares/1.png');	}
+		.t-2		{	background-image: url('squares/2.png');	}
+		.t-3		{	background-image: url('squares/3.png');	}
+		.t-4		{	background-image: url('squares/4.png');	}
+		.t-5		{	background-image: url('squares/5.png');	}
+		.t-6		{	background-image: url('squares/6.png');	}
+		.t-7		{	background-image: url('squares/7.png');	}
+		.t-9		{	background-image: url('squares/9.png');	}
 		.t-16		{	background-image: url('squares/16.png');	}
 
-		.t-2.d-0	{	background: url('squares/suit-0.png');	}
-		.t-2.d-1	{	background: url('squares/suit-1.png');	}
-		.t-2.d-2	{	background: url('squares/suit-2.png');	}
-		.t-2.d-3	{	background: url('squares/suit-3.png');	}
+		.t-2.d-0	{	background-image: url('squares/suit-0.png');	}
+		.t-2.d-1	{	background-image: url('squares/suit-1.png');	}
+		.t-2.d-2	{	background-image: url('squares/suit-2.png');	}
+		.t-2.d-3	{	background-image: url('squares/suit-3.png');	}
 
 		.f-0, .f-1, .f-2 { display: none; }
 		.f-0-toggle:checked ~ .square.f-0 { display: block; }
@@ -115,6 +128,20 @@
 
 		.showspam ~ pre			{	display:	none;		}
 		.showspam:checked ~ pre {	display:	block;		}
+
+		li			{	white-space:	nowrap;	}
+
+		.dataTable > tbody > tr > td {
+			background-size:		contain !important;
+			background-repeat:		no-repeat;
+			background-position:	center;
+			}
+
+		.r	{	text-align: right;	}
+		.c	{	text-align: center;	}
+		.dataTable td, .dataTable th {
+			padding: 0.2em 0.5em;
+		}
 </style>
 
 <?php
@@ -159,16 +186,16 @@
 		protected function _parse() {
 
 			$ds						= new \DataSeeker($this->_data);
-			$this->_unk01			= $ds->getI(1);		// 00
-			$this->_unk02			= $ds->getI(1);		// 01
-			$this->_squareCount		= $ds->getI(1);		// 02
-			$this->_unk03			= $ds->getI(1);		// 03
-			$this->_maxRoll			= $ds->getI(1);		// 04
-			$this->_unk05			= $ds->getI(1);		// 05
-			$this->_startingMoney	= $ds->getI(2);		// 06-07
-			$this->_defaultTarget	= $ds->getI(2);		// 08-09
-			$this->_baseSalary		= $ds->getI(2);		// 0A-0B
-			$this->_promotionBonus	= $ds->getI(2);		// 0C-0D
+			$this->_unk01			= $ds->getI(1);		// 00; unused? always 02
+			$this->_unk02			= $ds->getI(1);		// 01; unused? always 00
+			$this->_squareCount		= $ds->getI(1);		// 02; count of squares on this street
+			$this->_unk03			= $ds->getI(1);		// 03; unused? always 00
+			$this->_maxRoll			= $ds->getI(1);		// 04; max dice roll (5~8)
+			$this->_unk05			= $ds->getI(1);		// 05; unused? always 00
+			$this->_startingMoney	= $ds->getI(2);		// 06-07; player's starting money
+			$this->_defaultTarget	= $ds->getI(2);		// 08-09; default target (can be changed)
+			$this->_baseSalary		= $ds->getI(2);		// 0A-0B; base salary on promotion
+			$this->_promotionBonus	= $ds->getI(2);		// 0C-0D; bonus given on promotion, multiplied by level
 
 			for ($i = 0; $i < $this->_squareCount; $i++) {
 				$sqdata				= $ds->getS(0x30);
@@ -213,19 +240,34 @@
 		protected	$_floor		= 0;			// 02 -- floor that this is on?
 		protected	$_value		= 0;			// 03-04
 		protected	$_price		= 0;			// 05-06
-		protected	$_district	= 0;			// 219 for "null"
+		protected	$_district	= 0;			// 07; 0xdb for "none", used as suit in suit spaces
 		protected	$_type		= 0;			// 0 for shop, ...
 
+		protected	$_linkCount	= 0;			// 0e; # of links
+		protected	$_links		= array();		// 0f-12; square ids
+
+		protected	$_pathCount	= 0;			// 13; # of path exclusions
+		protected	$_paths		= array();		// 14-1f; 3-byte list of "origin, forbid, forbid" to block movement
+
+		protected	$_unknowns	= array();		// 07-0b
+
+		protected	$_name		= array();		// Stored in two halves for auction/trading window
+		protected	$_fullName	= "";			// Combined chunks of name
+
 		public		$types		= array(
-			0		=> "shop",
-			1		=> "bank",
-			2		=> "venture-suit",
-			5		=> "holiday",
+			0		=> "Shop",
+			1		=> "Bank",
+			2		=> "Venture/Suit",
+			3		=> "Roll On",
+			4		=> "Boon",
+			5		=> "Holiday",
+			6		=> "Warp",
+			7		=> "Stockbroker",
+			8		=> "(Unused/Blank)",
+			9		=> "Casino",
+			0x10	=> "Vacant Lot",
 			);
 
-		protected	$_unknowns	= array();		// 07-1F
-
-		protected	$_name		= array();		// Stored in two halves
 
 		public function __construct($street, $id, $data) {
 			$this->_street		= $street;
@@ -250,9 +292,25 @@
 			$this->_type		= $ds->getI(1);
 			$this->_district	= $ds->getI(1);
 
-			for ($i = 0x09; $i <= 0x1f; $i++) {
+			for ($i = 0x09; $i <= 0x0d; $i++) {
 				$this->_unknowns[$i]	= $ds->getI();
 			}
+
+			$this->_linkCount	= $ds->getI();
+			for ($i = 0x0f; $i <= 0x12; $i++) {
+				$this->_links[]	= $ds->getI();
+			}
+
+			$this->_pathCount	= $ds->getI();
+			for ($i = 0x14; $i <= 0x1f; $i += 3) {
+				$origin			= $ds->getI();
+				$this->_paths[$origin]	= array($ds->getI(), $ds->getI());
+
+				if ($origin == 0xdb && $this->_paths[$origin][0] == 0xdb && $this->_paths[$origin][1] == 0xdb) {
+					unset($this->_paths[$origin]);
+				}
+			}
+
 
 			$nameA				= $ds->getS(8);
 			$nameB				= $ds->getS(8);
@@ -262,6 +320,7 @@
 				$translator->translateString($nameA),
 				$translator->translateString($nameB),
 				);
+			$this->_fullName	= trim($this->_name[0]) . trim($this->_name[1]);
 
 		}
 
@@ -294,15 +353,119 @@
 						0x15F976,
 					);
 
+
 	$streetNumber	= 13;
-	if (isset($_GET['s']) && $_GET['s'] >= 0 && $_GET['s'] <= 14) {
-		$streetNumber	= intval($_GET['s']);
+	if (isset($_GET['s']) && $_GET['s'] >= 1 && $_GET['s'] <= 15) {
+		$streetNumber	= intval($_GET['s']) - 1;
 	}
 
 	print "view street: ";
-	for ($i = 0; $i <= 14; $i++) {
+	for ($i = 1; $i <= 15; $i++) {
 		print " &middot; <a href='?s=$i'>$i</a>";
 	}
+	print " &middot; <a href='?s=all'>all data</a>";
+
+	/*******************************************/
+	/*******************************************/
+	/*******************************************/
+	// set to true to dump all the table data in one go
+	if (isset($_GET['s']) && $_GET['s'] == "all") {
+
+		print <<<E
+<table>
+	<tr>
+		<th>id</th>
+		<th>unk01</th>
+		<th>unk02</th>
+		<th>squareCount</th>
+		<th>unk03</th>
+		<th>maxRoll</th>
+		<th>unk05</th>
+		<th>startingMoney</th>
+		<th>defaultTarget</th>
+		<th>baseSalary</th>
+		<th>promotionBonus</th>
+	</tr>
+E;
+
+		$street			= array();
+
+		foreach ($streetOffsets as $id => $offset) {
+			$test		= $itadaki->getDecompressor($offset);
+			$streetData	= $test->decompress();
+
+			$street[$id]		= new Street($itadaki, $streetData);
+
+			$tid		= $id + 1;
+
+			print <<<E
+	<tr>
+		<th>street $tid</td>
+		<td>{$street[$id]->unk01}</td>
+		<td>{$street[$id]->unk02}</td>
+		<td><a href="#street-{$tid}">{$street[$id]->squareCount}</a></td>
+		<td>{$street[$id]->unk03}</td>
+		<td>{$street[$id]->maxRoll}</td>
+		<td>{$street[$id]->unk05}</td>
+		<td>{$street[$id]->startingMoney}</td>
+		<td>{$street[$id]->defaultTarget}</td>
+		<td>{$street[$id]->baseSalary}</td>
+		<td>{$street[$id]->promotionBonus}</td>
+	</tr>
+E;
+
+		}
+		print "</table>";
+
+
+		foreach ($street as $id => $s) {
+			$tid	= $id + 1;
+			print <<<E
+<h1><a name="street-{$tid}">street $tid</a></h1>
+<table class="dataTable">
+	<thead>
+		<tr>
+			<th>id</th>
+			<th>type</th>
+			<th>name</th>
+			<th>value</th>
+			<th>price</th>
+			<th>district</th>
+			<th>links</th>
+		</tr>
+	</thead>
+	<tbody>
+E;
+
+			foreach ($s->squares as $sid => $square) {
+				print <<<E
+		<tr>
+			<td class="c">$sid</td>
+			<td class="d-{$square->district} t-{$square->type}" style="position: static; height: 2em;"></td>
+			<td>{$square->fullName}</td>
+			<td class="r">{$square->value}</td>
+			<td class="r">{$square->price}</td>
+			<td class="c d-{$square->district}">{$square->district}</td>
+			<td class="r">{$square->linkCount}</td>
+		</tr>
+E;
+			}
+
+		print <<<E
+	</tbody>
+</table>
+<br>
+<br>
+E;
+		}
+
+		print pageFooter();
+		exit();
+	}
+	/*******************************************/
+	/*******************************************/
+	/*******************************************/
+
 
 	//$test		= $itadaki->getDecompressor(0x15b700);
 	$test		= $itadaki->getDecompressor($streetOffsets[$streetNumber]);
@@ -334,18 +497,29 @@
 	<div class="square d-{$square->district} t-{$square->type} f-{$square->floor}" style="left: {$px}px; top: {$py}px;">
 		<div class="id">{$id}</div>
 		{$prices}
-		{$square->floor}
 		<div class="data">
-			{$name}
-			<br>type {$square->type}
+			{$square->types[$square->type]}: {$name}
 			<br>district #{$square->district}
-			<br>
+			<br>floor {$square->floor}
+			<br>links: {$square->linkCount}
+			<br><ol>
 E;
+
+
+		foreach ($square->links as $id) {
+			print "<li>". db($id);
+			if (isset($square->paths[$id])) {
+				print " (&#x2718; ". db($square->paths[$id][0]) .", ". db($square->paths[$id][1]) .")";
+			}
+			print "</li>";
+		}
+		print "</ol>";
+
 		$t1		= "";
 		$t2		= "";
 		foreach ($square->unknowns as $ui => $uv) {
 			$t1		.= sprintf("<th>%02x</th>", $ui);
-			$t2		.= sprintf("<td>%02x<br>%d</td>", $uv, $uv);
+			$t2		.= "<td>". db($uv) ."</td>";
 		}
 
 		print <<<E
