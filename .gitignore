@@ -1,6 +1,11 @@
 *.sfc
 *.bst
 *.srm
+*.bin
+*.exe
+*.id*
+*.nam
+*.til
 stderr.txt
 stdout.txt
 sandbox*
