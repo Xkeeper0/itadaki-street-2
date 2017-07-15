@@ -6,6 +6,8 @@
 *.id*
 *.nam
 *.til
+*.cht
+*.i64
 stderr.txt
 stdout.txt
 sandbox*
