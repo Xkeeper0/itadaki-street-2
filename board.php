@@ -249,7 +249,7 @@
 		protected	$_pathCount	= 0;			// 13; # of path exclusions
 		protected	$_paths		= array();		// 14-1f; 3-byte list of "origin, forbid, forbid" to block movement
 
-		protected	$_unknowns	= array();		// 07-0b
+		protected	$_unknowns	= array();		// 07-0b; these are always 0xdb except suit squares, where 07 is always 00
 
 		protected	$_name		= array();		// Stored in two halves for auction/trading window
 		protected	$_fullName	= "";			// Combined chunks of name
@@ -432,12 +432,19 @@ E;
 			<th>price</th>
 			<th>district</th>
 			<th>links</th>
+			<th>unknowns</th>
 		</tr>
 	</thead>
 	<tbody>
 E;
 
 			foreach ($s->squares as $sid => $square) {
+				$uvo	= "";
+				foreach ($square->unknowns as $b => $uv) {
+					$uvo	.= db($uv) ." ";
+				}
+
+				$district	= db($square->district);
 				print <<<E
 		<tr>
 			<td class="c">$sid</td>
@@ -445,8 +452,9 @@ E;
 			<td>{$square->fullName}</td>
 			<td class="r">{$square->value}</td>
 			<td class="r">{$square->price}</td>
-			<td class="c d-{$square->district}">{$square->district}</td>
+			<td class="c d-{$square->district}">{$district}</td>
 			<td class="r">{$square->linkCount}</td>
+			<td class="r">{$uvo}</td>
 		</tr>
 E;
 			}
