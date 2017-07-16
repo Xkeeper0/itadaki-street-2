@@ -2,8 +2,6 @@
 
 	require "includes.php";
 
-	/*
-
 	// This code will take a decompressed blob of data,
 	// and then...
 	//             ... inflate it by about 12.5%. oops
@@ -11,7 +9,7 @@
 	// it doesn't compress, it just copies.
 	// But! It works!
 
-	$orig	= file_get_contents("/tmp/ita2_15B700.bin");
+	$orig	= file_get_contents("/tmp/orig_decompressed.bin");
 
 	$cp		= new Compressor($orig);
 	$out	= $cp->compress();
@@ -27,23 +25,29 @@
 
 	print "\n";
 
-	file_put_contents("/tmp/out.bin", $out);
-	file_put_contents("/tmp/decomp.bin", $tdata);
-	file_put_contents("/tmp/orig.bin", $orig);
+	file_put_contents("/tmp/comp.bin", $out);
+	file_put_contents("/tmp/comp_decompressed.bin", $tdata);
+
+
+	/*
+
+	$orig	= file_get_contents("/tmp/ita2_15B700.bin");
+	$cp		= new CompressorTest($orig);
+	$cp->test();
 
 	*/
+
+
 
 	class Compressor {
 
 
-		protected	$_input		= "";		// Input (plain)
-		protected	$_inputPos	= 0;		// Current input pointer
-		protected	$_len		= 0;		// Input length
-		protected	$_output	= "";		// Output data (compressed)
-		protected	$_compress	= array();	// Compressed data (pre-write)
-		protected	$_bytePos	= array();	// Byte positions (for lookback test)
-		protected	$_flag		= 0;		// Current compression flag
-		protected	$_flagCount	= 0;		// Current flag counter
+		protected	$_input			= "";		// Input (plain)
+		protected	$_readPointer	= 0;		// Current input pointer
+		protected	$_len			= 0;		// Input length
+		protected	$_output		= "";		// Output data (compressed)
+		protected	$_compress		= array();	// Compressed data (pre-write)
+		protected	$_bytePos		= array();	// Byte positions (for lookback test)
 
 		public function __construct($data) {
 			$this->_input	= $data;
@@ -67,7 +71,7 @@
 			$this->_writeByte(0x6b58, true);
 
 			// Figure out the # of flags we'll need
-			$loops	= ceil(count($this->_compress) / 8) * 8;
+			$loops	= ceil(count($this->_compress) / 8);
 
 			// Get the next 8 data chunks, write the flag, write the data
 			// In the event we run out of data chunks, just fill the rest of bitflags with 0
@@ -93,23 +97,65 @@
 		public function _doCompression() {
 
 			// Start the compression fun time
-			while ($this->_inputPos < $this->_len) {
-
+			while ($this->_readPointer < $this->_len) {
+				printf("Byte %04X [\$%02X]\n", $this->_readPointer, ord($this->_input{$this->_readPointer}));
 				if ($c = $this->_shouldCompress()) {
-					// @TODO Compress
-					// Advance read pointer as required
+					printf("  Compress check says yes: offset %04X, length %02X\n", $c['offset'], $c['length']);
+					$this->_writeLookbackBytes($c['offset'], $c['length']);
+					$this->_advanceReadPointer($c['length']);
 
 				} else {
 					// Don't compress
-					$this->_writePlainByte(ord($this->_input{$this->_inputPos}));
-					$this->_inputPos++;
+					printf("  Not compressing\n");
+					$this->_writePlainByte(ord($this->_input{$this->_readPointer}));
+					$this->_advanceReadPointer(1);
 				}
 			}
 		}
 
 
+		// Determine if we should compress.
+		// Look back at various things and see if we can get anywhere
 		protected function _shouldCompress() {
-			// @TODO: Do this, somehow
+
+			if ($this->_readPointer == 0) {
+				// Can't compress the first byte!
+				printf("  Can't compress first byte!\n");
+				return false;
+			}
+
+			// Get the current byte
+			$cByte	= ord($this->_input{$this->_readPointer});
+
+			if (!isset($this->_bytePos[$cByte])) {
+				// Can't compress a byte we haven't seen before!
+				printf("  First time seeing \$%02X, can't compress!\n", $cByte);
+				return false;
+			}
+
+			// Look through all of the instances of this byte
+			// and see if we can get anything good out of it.
+			// Should go in closest-first to last
+			$bestLength	= 0;
+			$bestOffset	= 0;
+			foreach ($this->_bytePos[$cByte] as $offset) {
+				$length	= $this->_testLookbackWrite($offset);
+				if ($length > $bestLength) {
+					printf(" New potential offset %04X, length %02X\n", $offset, $length);
+					$bestLength	= $length;
+					$bestOffset	= $offset;
+					if ($length == 18) {
+						// Hit gold, can't do any better than this
+						break;
+					}
+				}
+			}
+
+			if ($bestLength >= 3) {
+				// If we can get 3 or more, it's worth shrinking to 2 bytes
+				return array("offset" => $bestOffset, "length" => $bestLength);
+			}
+
 			return false;
 		}
 
@@ -124,12 +170,12 @@
 
 			// Offset obviously can't be greater than where we are,
 			// and the length has to be between 3 and 18 (3 + 16) inclusive
-			if ($offset > $this->_inputPos || ($length < 3 || $length > 18)) {
+			if ($offset > $this->_readPointer || ($length < 3 || $length > 18)) {
 				throw new \Exception("Somehow length or offset are totally wrong.");
 			}
 
 			// Offset value is /behind/ current write pointer...
-			$nOffset			= (($this->_inputPos - $offset) & 0xFFF) << 4;
+			$nOffset			= (($this->_readPointer - ($offset + 1)) & 0xFFF) << 4;
 			// ...and length is 3 + (4-bit value).
 			$nLength			= (($length - 3) & 0x00F);
 
@@ -153,5 +199,68 @@
 			}
 		}
 
+
+		// Determine if (and for how long) we can
+		// use some lookback data
+		protected function _testLookbackWrite($offset) {
+			// $offset is the address into _input
+			// $loopPoint is how many bytes we get out of it before "repeating"
+			// (i.e., overrunning into what we've written)
+			// Basically 'if we go past _readPointer, start over from $offset again'
+			$loopPoint	= $this->_readPointer - $offset;
+			$length		= 0;
+
+			for ($i = 0; $i < 18; $i++) {
+
+				// If we've gone past the end, immediately stop
+				if (($this->_readPointer + $i) === $this->_len) {
+					break;
+				}
+
+				// Compare the real data with the possible read data
+				$real	= $this->_input{$this->_readPointer + $i};
+				$cmp	= $this->_input{($offset + ($i % $loopPoint))};
+
+				if ($real === $cmp) {
+					$length++;
+				} else {
+					// Data doesn't match, can't go forward any more
+					break;
+				}
+			}
+
+			return $length;
+		}
+
+
+		// Advance the internal read pointer by some amount,
+		// adding the read bytes to our tracker
+		protected function _advanceReadPointer($num) {
+			for ($i = 0; $i < $num; $i++) {
+				$b		= ord($this->_input{$this->_readPointer});
+				if (!isset($this->_bytePos[$b])) {
+					$this->_bytePos[$b]	= array();
+				}
+				array_unshift($this->_bytePos[$b], $this->_readPointer);
+				$this->_readPointer++;
+			}
+		}
+
+
+	}
+
+
+
+
+
+	class CompressorTest extends Compressor {
+
+		public function test() {
+			$this->_input		= "\x00\x00\x11\x22\x33\x11\x22\x33\x11\x22\x33\x44\x55\x66\x66\x66\x66\x66\x66\x66\x66\x66\x66\x66\x66\x66\x66\x66";
+			$this->_len			= strlen($this->_input);
+			$this->_readPointer	= 14;
+
+			var_dump($this->_testLookbackWrite(13));
+		}
 
 	}
