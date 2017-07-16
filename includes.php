@@ -7,4 +7,5 @@
 	require "data/utils.php";
 	require "data/textbox.php";
 	require "data/decompressor.php";
+	require "data/compressor.php";
 	require "html/html.php";
