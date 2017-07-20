@@ -1,0 +1,63 @@
+/* Main styles */
+
+body {
+	background-color:	#111;
+	color:				#ccc;
+	font-family:	Verdana, Tahoma, sans-serif;
+}
+
+a			{	color:	#bbf;	text-decoration:	none;	}
+a:visited	{	color:	#dad;	}
+a:hover		{	color:	#77d;	}
+
+pre	{
+	font-family:	Ubuntu Mono, Consolas, Monaco, Courier New, monospace;
+}
+.menugrid {
+	background: #000;
+	border-spacing: 1px;
+	color: white;
+}
+.menugrid td {
+	background: #222;
+	width: 1.5em;
+	height: 1.5em;
+	text-align: center;
+}
+.menugrid td.c {
+	background: #224;
+}
+
+footer	{
+	text-align:	right;
+}
+
+.specialChar	{
+	color:		#ffee44;
+}
+
+img[src^="bigtext.php"] {
+	width:	36px;
+	height:	36px;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -o-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: crisp-edges;
+	image-rendering: pixelated;
+	-ms-interpolation-mode:nearest-neighbor;
+}
+
+
+
+/*	Palette viewer;
+	The container div itself is intended to be a row of 16 color tiles
+	The internal divs are the color tiles themselves
+ */
+.palette	{	display: inline-block;	vertical-align: middle;	}
+.palette div	{
+	border:		1px solid black;
+	margin: 	3px 0px;
+	width:		32px;
+	height:		32px;
+	display:	inline-block;
+}

@@ -60,11 +60,11 @@
 
 
 		public function htmlize() {
-			$out	= "<div style='display: inline-block; vertical-align: middle;'>";
+			$out	= "\t<div class='palette'>\n";
 			for ($i = 0; $i < 16; $i++) {
-				$out	.= "<div style='border: 1px solid black; margin: 3px; width: 32px; height: 32px; display: inline-block; background: ". $this->_colors[$i]['html']  .";'></div>";
+				$out	.= "\t\t<div style='background: ". $this->_colors[$i]['html']  .";'></div>\n";
 			}
-			$out	.= "</div>";
+			$out	.= "\t</div>\n";
 			return $out;
 		}
 
