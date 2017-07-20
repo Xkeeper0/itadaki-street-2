@@ -61,3 +61,132 @@ img[src^="bigtext.php"] {
 	height:		32px;
 	display:	inline-block;
 }
+
+
+/*	Board viewer
+	These are styles used for the board viewer page
+	They probably need cleaned up and made a little more specific
+	but for right now it's fine I guess
+*/
+
+del	{
+	opacity:	0.5;
+	font-style:	italic;
+	}
+
+.street {
+	position:	relative;
+	width:		100%;
+	height:		1280px;
+	background:	#333;
+	}
+
+.square	{
+	width:		74px;
+	height:		74px;
+	position:	absolute;
+	border:		2px solid black;
+	box-sizing:	border-box;
+	background:	#555;
+	box-shadow:	0 0 5px 1px black;
+	padding:	0.2em 0.3em;
+	background-position:	center;
+	background-repeat:		no-repeat;
+	}
+
+.data {
+	display:	none;
+	position:	absolute;
+	left:		70px;
+	top:		30px;
+	padding:	0.2em 0.5em;
+	background:	rgba(20, 20, 50, .8);
+	}
+
+.square:hover {
+	z-index:	9999;
+	}
+.square:hover .data {
+	display:	block;
+	}
+
+table {
+	border-collapse:	collapse;
+	}
+td, th {
+	border:	1px solid #ccc;
+	font-family:	Consolas, Courier New, monospace;
+	padding:		0.1em 0.3em;
+	}
+
+.id	{
+	font-family:	Consolas, Courier New, monospace;
+	font-size:		80%;
+	font-style:		italic;
+	text-shadow:	1px 1px black, -1px -1px black, -1px 1px black, 1px -1px black;
+	/*
+	padding:		0.1em 0.3em;
+	background:		rgba(0, 0, 0, .5);
+	*/
+	}
+
+.prices	{
+	position:		absolute;
+	bottom:			0;
+	left:			0;
+	right:			0;
+	width:			100%;
+	text-align:		center;
+	font-size:		80%;
+	background:		rgba(0, 0, 0, .3);
+	}
+
+/* The district colors wrap around after 8 */
+.d-0, .d-8	{	background-color:	#ad2952;	}
+.d-1, .d-9	{	background-color:	#b55229;	}
+.d-2, .d-10	{	background-color:	#948421;	}
+.d-3, .d-11	{	background-color:	#4a9439;	}
+.d-4, .d-12	{	background-color:	#29847b;	}
+.d-5, .d-13	{	background-color:	#296bad;	}
+.d-6, .d-14	{	background-color:	#6b42ad;	}
+.d-7, .d-15	{	background-color:	#8c397b;	}
+
+/* "null" districts */
+.d-219		{	background-color:	#000000;	}
+
+.t-1		{	background-image: url('../squares/1.png');	}
+.t-2		{	background-image: url('../squares/2.png');	}
+.t-3		{	background-image: url('../squares/3.png');	}
+.t-4		{	background-image: url('../squares/4.png');	}
+.t-5		{	background-image: url('../squares/5.png');	}
+.t-6		{	background-image: url('../squares/6.png');	}
+.t-7		{	background-image: url('../squares/7.png');	}
+.t-9		{	background-image: url('../squares/9.png');	}
+.t-16		{	background-image: url('../squares/16.png');	}
+
+.t-2.d-0	{	background-image: url('../squares/suit-0.png');	}
+.t-2.d-1	{	background-image: url('../squares/suit-1.png');	}
+.t-2.d-2	{	background-image: url('../squares/suit-2.png');	}
+.t-2.d-3	{	background-image: url('../squares/suit-3.png');	}
+
+.f-0, .f-1, .f-2 { display: none; }
+.f-0-toggle:checked ~ .square.f-0 { display: block; }
+.f-1-toggle:checked ~ .square.f-1 { display: block; }
+.f-2-toggle:checked ~ .square.f-2 { display: block; }
+
+.showspam ~ pre			{	display:	none;		}
+.showspam:checked ~ pre {	display:	block;		}
+
+li			{	white-space:	nowrap;	}
+
+.dataTable > tbody > tr > td {
+	background-size:		contain !important;
+	background-repeat:		no-repeat;
+	background-position:	center;
+	}
+
+.r	{	text-align: right;	}
+.c	{	text-align: center;	}
+.dataTable td, .dataTable th {
+	padding: 0.2em 0.5em;
+}
