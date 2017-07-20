@@ -11,6 +11,7 @@
 		// because they are assumed to both be zero
 		protected $_romOffset			= 0;		// Where in the ROM it starts
 		protected $_readPointer			= 0;		// Where we are in the data
+		protected $_readSize			= 0;		// How large the compressed data is
 		protected $_writePointer		= 0;		// Where we are in the output
 		protected $_writeLength			= 0;		// How much we should write
 		protected $_compressionFlag		= 0;		// Compression bitflag
@@ -22,6 +23,34 @@
 		public function __construct(&$rom, $startOffset) {
 			$this->_rom			= &$rom;
 			$this->_romOffset	= $startOffset;
+
+			// Get the amount we're expected to read as a 16-bit value.
+			$this->_writeLength		= $this->_readNextByte(true);
+			$this->_log(sprintf("Expected size: %04x bytes", $this->_writeLength));
+
+			// Read two unused (!) bytes.
+			// This is supposed to be the size of the compressed data, but
+			// no games using this format seem to actually care.
+			$this->_readSize		= $this->_readNextByte(true);
+			printf("Size: %d bytes\n", $this->_readSize);
+
+			// @TODO: Don't save the ROM, just copy the expected needed data
+		}
+
+		/**
+		* getCompressedSize
+		* @return	int		size of compressed data
+		*/
+		public function getCompressedSize() {
+			return $this->_readSize;
+		}
+
+		/**
+		* getDecompressedSize
+		* @return	int		indicated size of decompressed data
+		*/
+		public function getDecompressedSize() {
+			return $this->_writeLength;
 		}
 
 		/**
@@ -29,15 +58,6 @@
 		* Decompress some data based on arguments from the constructor.
 		*/
 		public function decompress() {
-
-			// Get the amount we're expected to read as a 16-bit value.
-			$this->_writeLength		= $this->_readNextByte(true);
-			$this->_log(sprintf("Expected size: %04x bytes", $this->_writeLength));
-
-			// Read two unused (!) bytes.
-			// The code itself reads and immediately discards these best I can tell
-			$this->_readNextByte();
-			$this->_readNextByte();
 
 			// Continue decompressing data until we fill the requested amount
 			while ($this->_writePointer < $this->_writeLength) {
@@ -62,6 +82,9 @@
 
 			}
 
+			if ($this->_writeLength !== strlen($this->_output)) {
+				throw new \Exception("somehow wrote more data than expected? wrote ". strlen($this->_output) .", expected ". $this->_writeLength);
+			}
 			return $this->_output;
 
 		}
@@ -114,6 +137,11 @@
 				$this->_output	.= chr($byte);
 				$this->_writePointer++;
 				$readPtr++;
+				if ($this->_writePointer >= $this->_writeLength) {
+					$this->_log("      ** Reached target size, exiting");
+					$this->_log("      ** Repeat count excessive by ". ($readLen - $i) ." bytes");
+					return;
+				}
 			}
 		}
 
@@ -165,7 +193,7 @@
 		* Outputs lots of garbage if you uncomment it
 		*/
 		protected function _log($m) {
-			//print $m ."\n";
+			printf("%06X/%06X  %s\n", $this->_writePointer, $this->_readPointer, $m);
 		}
 
 	}

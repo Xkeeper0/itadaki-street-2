@@ -9,3 +9,6 @@
 	require "data/decompressor.php";
 	require "data/compressor.php";
 	require "html/html.php";
+
+	// Define if we are in CLI mode or not (for some scripts)
+	define("IS_CLI", (PHP_SAPI == "cli" ? true : false));

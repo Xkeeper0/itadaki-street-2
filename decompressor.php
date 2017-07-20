@@ -2,17 +2,42 @@
 
 	require "includes.php";
 
-	print pageHeader("decompression tool");
-
-	#header("Content-type: text/plain");
-
 	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
 
+	if (IS_CLI) {
+		// If run as a command line too, do command line stuff
 
-	$ofs		= false;
-	if ($_GET['ofs']) {
-		$ofs	= hexdec($_GET['ofs']);
-	}
+		if (!isset($argv[1])) {
+			die("Missing: offset to start decompressing (like '0x??????')\n");
+		}
+
+		$ofs		= hexdec($argv[1]);
+		$filename	= sprintf("decomp_%06X.bin", $ofs);
+
+		if (isset($argv[2])) {
+			$filename	= $argv[2];
+		}
+
+		$decomp	= $itadaki->getDecompressor($ofs);
+		printf("Decompressing data from \$%06x ...\n", $ofs);
+		printf("Compressed data length:   %6d bytes\n", $decomp->getCompressedSize());
+		printf("Decompressed data length: %6d bytes\n", $decomp->getDecompressedSize());
+
+		$data	= $decomp->decompress();
+		file_put_contents($filename, $data);
+		print "Saved decompressed data as $filename\n";
+
+
+	} else {
+
+		// Viewed as webpage, do web stuff
+
+		print pageHeader("decompression tool");
+
+		$ofs		= false;
+		if ($_GET['ofs']) {
+			$ofs	= hexdec($_GET['ofs']);
+		}
 
 ?>
 decompression tool. enter an offset to decompress it, maybe.
@@ -24,21 +49,24 @@ decompression tool. enter an offset to decompress it, maybe.
 
 <?php
 
-	if ($ofs) {
+		if ($ofs) {
 
-		$test	= $itadaki->getDecompressor($ofs);
+			$test	= $itadaki->getDecompressor($ofs);
 
-		print "<pre>";
-		$x		= $test->decompress();
+			print "<pre>";
+			$x		= $test->decompress();
 
-		$base64	= base64_encode($x);
-		$ofst	= sprintf("%06X", $ofs);
-		print "<a download='ita2_$ofst.bin' href='data:application/octet-stream;base64,$base64'>download this</a>";
+			$base64	= base64_encode($x);
+			$ofst	= sprintf("%06X", $ofs);
+			print "<a download='ita2_$ofst.bin' href='data:application/octet-stream;base64,$base64'>download this</a>";
 
-		print "\n\n";
-		print wordwrap(bin2hex($x), 16 * 4, "\n", true);
-		print "</pre>";
+			print "\n\n";
+			print wordwrap(bin2hex($x), 16 * 4, "\n", true);
+			print "</pre>";
+
+		}
+
+		print pageFooter();
+
 
 	}
-
-	print pageFooter();
