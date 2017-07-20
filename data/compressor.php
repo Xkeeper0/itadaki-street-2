@@ -33,8 +33,10 @@
 			// First order of business: write the length of data
 			$this->_writeByte($this->_len, true);
 
-			// Write two otherwise unused bytes
-			$this->_writeByte(0x6b58, true);
+			// Write two placeholder bytes.
+			// These will be the size of compressed data later,
+			// but we obviously don't know that quite yet.
+			$this->_writeByte(0x0000, true);
 
 			// Figure out the # of flags we'll need
 			$loops	= ceil(count($this->_compress) / 8);
@@ -57,6 +59,12 @@
 
 				$this->_output	.= chr($flag) . $data;
 			}
+
+			// Get the size of compressed data (minus the 4 header bytes)
+			$size	= strlen($this->_output) - 4;
+			// Write that size back into the data.
+			$this->_output{2}	= chr(($size & 0x00FF));
+			$this->_output{3}	= chr(($size & 0xFF00) >> 8);
 
 		}
 

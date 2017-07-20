@@ -84,7 +84,8 @@
 			}
 
 			if ($this->_writeLength !== strlen($this->_output)) {
-				throw new \Exception("somehow wrote more data than expected? wrote ". strlen($this->_output) .", expected ". $this->_writeLength);
+				// @TODO: Verify that we used the specified compressed size bytes too.
+				throw new \Exception("somehow wrote different data than expected? wrote ". strlen($this->_output) .", expected ". $this->_writeLength);
 			}
 			return $this->_output;
 
@@ -130,6 +131,10 @@
 			$this->_log(sprintf("    Lookback: %04x bytes, readPtr %04x", $readOfs, $readPtr));
 			$this->_log(sprintf("    Length:   %02x (%2d)", $readLen, $readLen));
 
+			if ($readPtr < 0) {
+				throw new \Exception(sprintf("Lookback readPtr out of bounds. readOfs %04X, writePtr %06X", $readOfs, $this->_writePointer));
+			}
+
 			for ($i = 0; $i < $readLen; $i++) {
 				// Read a byte from the output string at position readPtr
 				// and output it at the end of the decompressed output
@@ -139,6 +144,9 @@
 				$this->_writePointer++;
 				$readPtr++;
 				if ($this->_writePointer >= $this->_writeLength) {
+					// Actual in-game data is compressed poorly and sometimes can over-run
+					// the decompressed size by a few bytes.
+					// In that case, we stop writing and exit.
 					$this->_log("      ** Reached target size, exiting");
 					$this->_log("      ** Repeat count excessive by ". ($readLen - $i) ." bytes");
 					return;
