@@ -48,7 +48,7 @@
 
 
 	function getBit($s, $bit) {
-		$pos	= floor($bit / 8);
+		$pos	= (int)floor($bit / 8);
 		$bit	= 7 - ($bit % 8);
 		$chr	= ord($s{$pos});
 

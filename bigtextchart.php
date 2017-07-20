@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-	<table>nice font, dude</table>
+	<title>nice font, dude</title>
 	<style>
 		body {
 			background: #113;
@@ -11,7 +11,7 @@
 		}
 		img	{
 
-			image-rendering: -moz-crisp-edges; 
+			image-rendering: -moz-crisp-edges;
 			image-rendering: -o-crisp-edges;
 			image-rendering: -webkit-optimize-contrast;
 			image-rendering: crisp-edges;
