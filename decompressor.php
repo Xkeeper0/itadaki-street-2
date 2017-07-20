@@ -54,7 +54,9 @@ decompression tool. enter an offset to decompress it, maybe.
 			$test	= $itadaki->getDecompressor($ofs);
 
 			print "<pre>";
+			ob_start();
 			$x		= $test->decompress();
+			$log	= ob_get_clean();
 
 			$base64	= base64_encode($x);
 			$ofst	= sprintf("%06X", $ofs);
@@ -62,6 +64,8 @@ decompression tool. enter an offset to decompress it, maybe.
 
 			print "\n\n";
 			print wordwrap(bin2hex($x), 16 * 4, "\n", true);
+			print "\n\n";
+			print "$log\n\n";
 			print "</pre>";
 
 		}

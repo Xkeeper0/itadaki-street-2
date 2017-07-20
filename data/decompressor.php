@@ -193,7 +193,7 @@
 		* Outputs lots of garbage if you uncomment it
 		*/
 		protected function _log($m) {
-			printf("%06X/%06X  %s\n", $this->_writePointer, $this->_readPointer, $m);
+			//printf("%06X/%06X  %s\n", $this->_writePointer, $this->_readPointer, $m);
 		}
 
 	}
