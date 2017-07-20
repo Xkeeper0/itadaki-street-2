@@ -6,6 +6,13 @@ body {
 	font-family:	Verdana, Tahoma, sans-serif;
 }
 
+h1, h2, h3 {
+	padding:		0.25em 1em;
+	background:		#080808;
+	border-top:		1px solid #444;
+	border-bottom:	1px solid #444;
+}
+
 a			{	color:	#bbf;	text-decoration:	none;	}
 a:visited	{	color:	#dad;	}
 a:hover		{	color:	#77d;	}
