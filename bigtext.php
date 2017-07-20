@@ -18,6 +18,8 @@
 	} elseif (isset($_GET['i'])) {
 		if (substr($_GET['i'], 0, 2) == "0x") $_GET['i'] = hexdec($_GET['i']);
 		$o	= $_GET['i'] * 0x12;
+	} else {
+		die("You aren't supposed to access this directly...");
 	}
 
 	$idx	= $o / 0x12;
