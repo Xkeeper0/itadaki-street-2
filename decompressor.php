@@ -20,7 +20,7 @@
 
 		$decomp	= $itadaki->getDecompressor($ofs);
 		printf("Decompressing data from \$%06x ...\n", $ofs);
-		printf("Compressed data length:   %6d bytes\n", $decomp->getCompressedSize());
+		printf("Compressed data length:   %6d bytes + 4 byte header\n", $decomp->getCompressedSize());
 		printf("Decompressed data length: %6d bytes\n", $decomp->getDecompressedSize());
 
 		$data	= $decomp->decompress();
@@ -35,13 +35,13 @@
 		print pageHeader("decompression tool");
 
 		$ofs		= false;
-		if ($_GET['ofs']) {
+		if (isset($_GET['ofs'])) {
 			$ofs	= hexdec($_GET['ofs']);
 		}
 
 ?>
-decompression tool. enter an offset to decompress it, maybe.
-<br>there's no way to tell if it worked successfully.
+decompression tool. enter an offset to decompress the data there.
+<br>
 <br>
 <form method="get">
 	offset: <input type="text" name="ofs" value="<?php printf("0x%06x", ($ofs ? $ofs : 0x15b700)); ?>"> <input type="submit" value="do it">
@@ -51,19 +51,23 @@ decompression tool. enter an offset to decompress it, maybe.
 
 		if ($ofs) {
 
-			$test	= $itadaki->getDecompressor($ofs);
+			$decomp	= $itadaki->getDecompressor($ofs);
 
 			print "<pre>";
+			printf("Decompressing data from \$%06x ...\n", $ofs);
+			printf("Compressed data length:   %6d bytes + 4 byte header\n", $decomp->getCompressedSize());
+			printf("Decompressed data length: %6d bytes\n", $decomp->getDecompressedSize());
+
 			ob_start();
-			$x		= $test->decompress();
+			$data	= $decomp->decompress();
 			$log	= ob_get_clean();
 
-			$base64	= base64_encode($x);
+			$base64	= base64_encode($data);
 			$ofst	= sprintf("%06X", $ofs);
 			print "<a download='ita2_$ofst.bin' href='data:application/octet-stream;base64,$base64'>download this</a>";
 
 			print "\n\n";
-			print wordwrap(bin2hex($x), 16 * 4, "\n", true);
+			print wordwrap(bin2hex($data), 16 * 4, "\n", true);
 			print "\n\n";
 			print "$log\n\n";
 			print "</pre>";

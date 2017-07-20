@@ -4,12 +4,11 @@
 
 	class Decompressor {
 
-		protected $_rom					= null;		// The ROM file, as a reference
+		protected $_data				= null;		// The data (including header), as a reference
 		protected $_output				= "";		// The decompressed data
 
 		// Data start and output aren't needed
 		// because they are assumed to both be zero
-		protected $_romOffset			= 0;		// Where in the ROM it starts
 		protected $_readPointer			= 0;		// Where we are in the data
 		protected $_readSize			= 0;		// How large the compressed data is
 		protected $_writePointer		= 0;		// Where we are in the output
@@ -20,9 +19,9 @@
 		* Constructor, called from ItadakiStreet2->getDecompressor
 		* ROM should be passed automatically by that class
 		*/
-		public function __construct(&$rom, $startOffset) {
-			$this->_rom			= &$rom;
-			$this->_romOffset	= $startOffset;
+		public function __construct($rom, $startOffset) {
+			// Lop off everything before our start position
+			$this->_data			= substr($rom, $startOffset);
 
 			// Get the amount we're expected to read as a 16-bit value.
 			$this->_writeLength		= $this->_readNextByte(true);
@@ -32,14 +31,16 @@
 			// This is supposed to be the size of the compressed data, but
 			// no games using this format seem to actually care.
 			$this->_readSize		= $this->_readNextByte(true);
-			printf("Size: %d bytes\n", $this->_readSize);
+			$this->_log(sprintf("Data size: %d bytes (+ header)\n", $this->_readSize));
 
-			// @TODO: Don't save the ROM, just copy the expected needed data
+			// Lop off everything after the expected end
+			$this->_data			= substr($this->_data, 0, $this->_readSize + 4);
+
 		}
 
 		/**
 		* getCompressedSize
-		* @return	int		size of compressed data
+		* @return	int		size of compressed data (after the header)
 		*/
 		public function getCompressedSize() {
 			return $this->_readSize;
@@ -182,7 +183,7 @@
 		*/
 		protected function _readNextByte($r16bit = false) {
 			$bytes				= $r16bit ? 2 : 1;
-			$ret				= \Utils::toIntLE(substr($this->_rom, $this->_romOffset + $this->_readPointer, $bytes));
+			$ret				= \Utils::toIntLE(substr($this->_data, $this->_readPointer, $bytes));
 			$this->_readPointer	+= $bytes;
 
 			return $ret;
