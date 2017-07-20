@@ -13,6 +13,8 @@
 	require "data/itadakistreet2/street.php";
 	require "data/itadakistreet2/street/square.php";
 
+	require "data/snes/palette.php";
+
 	require "html/html.php";
 
 	// Define if we are in CLI mode or not (for some scripts)
