@@ -1,5 +1,7 @@
 <?php
 
+	namespace IS2;
+
 	class Translator {
 
 		// Table file.

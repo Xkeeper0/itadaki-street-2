@@ -4,8 +4,8 @@
 
 	print pageHeader("naive textbox searcher");
 
-	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
-	$rom	= file_get_contents("ita2.sfc");
+	$itadaki	= getIS2();
+	$rom		= $itadaki->rom();
 
 	print "<pre>";
 
@@ -21,8 +21,8 @@
 	$textboxes	= array();
 
 	foreach ($matches[0] as $i => $match) {
-		$dpos	= Utils::toIntLE($matches[1][$i][0]);
-		$jsr	= Utils::toIntLE($matches[2][$i][0]);
+		$dpos	= \Utils\Convert::toIntLE($matches[1][$i][0]);
+		$jsr	= \Utils\Convert::toIntLE($matches[2][$i][0]);
 		$dposc	= 0x68000 + $dpos;
 
 		$tb		= $itadaki->getTextbox($dposc);

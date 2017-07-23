@@ -1,7 +1,8 @@
 <?php
 
 
-	namespace ItadakiStreet2;
+	namespace IS2\Street;
+	use \Utils\DataSeeker;
 
 
 	class Street {
@@ -11,6 +12,7 @@
 		// Square name: last 16 (0x10) of square
 
 		protected	$_rom				= null;
+		protected	$_is2		        = null;
 		protected	$_translator		= null;
 		protected	$_data				= null;
 
@@ -29,9 +31,10 @@
 
 
 
-		public function __construct(&$translator, $data) {
-			$this->_translator	= &$translator;
-			$this->_rom			= &$translator->rom();
+		public function __construct(\IS2\ItadakiStreet2 &$is2, $data) {
+			$this->_is2			= &$is2;
+			$this->_rom			= &$is2->rom();
+			$this->_translator	= $is2->getSmallTable();
 			$this->_data		= $data;
 
 			$this->_parse();
@@ -41,7 +44,7 @@
 
 		protected function _parse() {
 
-			$ds						= new \DataSeeker($this->_data);
+			$ds						= new DataSeeker($this->_data);
 			$this->_unk01			= $ds->getI(1);		// 00; unused? always 02
 			$this->_unk02			= $ds->getI(1);		// 01; unused? always 00
 			$this->_squareCount		= $ds->getI(1);		// 02; count of squares on this street
@@ -55,7 +58,7 @@
 
 			for ($i = 0; $i < $this->_squareCount; $i++) {
 				$sqdata				= $ds->getS(0x30);
-				$this->_squares[$i]	= new Street\Square($this, $i, $sqdata);
+				$this->_squares[$i]	= new Square($this, $i, $sqdata);
 			}
 		}
 
@@ -66,15 +69,17 @@
 		* their output
 		*/
 		public function OH_GOD_DONT_FLOOD_THE_PAGE() {
-			unset($this->_translator);
+			unset($this->_is2);
 			unset($this->_rom);
-			$this->_translator		= null;
+			unset($this->_translator);
+			$this->_is2				= null;
 			$this->_rom				= null;
+			$this->_translator		= null;
 		}
 
 
 		public function getTranslator() {
-			return $this->_translator;
+			return $this->_is2->getSmallTable();
 		}
 
 		public function __get($name) {

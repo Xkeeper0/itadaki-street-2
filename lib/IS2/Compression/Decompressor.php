@@ -1,6 +1,6 @@
 <?php
 
-	namespace ItadakiStreet2;
+	namespace IS2\Compression;
 
 	class Decompressor {
 
@@ -191,7 +191,7 @@
 		*/
 		protected function _readNextByte($r16bit = false) {
 			$bytes				= $r16bit ? 2 : 1;
-			$ret				= \Utils::toIntLE(substr($this->_data, $this->_readPointer, $bytes));
+			$ret				= \Utils\Convert::toIntLE(substr($this->_data, $this->_readPointer, $bytes));
 			$this->_readPointer	+= $bytes;
 
 			return $ret;

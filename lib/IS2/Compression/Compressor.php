@@ -1,6 +1,6 @@
 <?php
 
-	namespace ItadakiStreet2;
+	namespace IS2\Compression;
 
 	// @TODO: Better comments
 
@@ -110,6 +110,7 @@
 			// Look through all of the instances of this byte
 			// and see if we can get anything good out of it.
 			// Should go in closest-first to last
+			// @TODO Don't look at anything more than 4095 (0xFFF) characters back
 			$bestLength	= 0;
 			$bestOffset	= 0;
 			foreach ($this->_bytePos[$cByte] as $offset) {

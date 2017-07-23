@@ -6,7 +6,7 @@
 		die("Sorry, this is CLI only.\n");
 	}
 
-	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
+	$itadaki	= getIS2();
 
 	// This file, when run, will start decompressing from $ofs.
 	// It will then start again from the next point after,
