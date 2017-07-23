@@ -7,7 +7,7 @@
 
 	#header("Content-type: text/plain");
 
-	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
+	$itadaki	= getIS2();
 
 	#var_dump($itadaki->getStringAtOffset(0x72ba0 + 4));
 	#var_dump($itadaki->getStringAtOffset(0x73554));

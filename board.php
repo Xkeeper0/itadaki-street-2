@@ -2,12 +2,14 @@
 
 	require "includes.php";
 
+	use IS2\Street\Street;
+
 	print pageHeader("board test page");
 
 	// This page is kind of a huge mess, sorry.
 	// I will hopefully fix it later (heh)
 
-	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
+	$itadaki	= getIS2();
 
 	// This will gray out any "0xdb" value
 	// (which seems to be an "unused" value for IS2)
@@ -61,7 +63,7 @@
 	if (isset($_GET['s']) && $_GET['s'] == "all") {
 
 		print <<<E
-<table>
+<table class='street-data'>
 	<tr>
 		<th>id</th>
 		<th>unk01</th>
@@ -83,7 +85,7 @@ E;
 			$test		= $itadaki->getDecompressor($offset);
 			$streetData	= $test->decompress();
 
-			$street[$id]		= new ItadakiStreet2\Street($itadaki, $streetData);
+			$street[$id]		= new Street($itadaki, $streetData);
 
 			$tid		= $id + 1;
 
@@ -111,7 +113,7 @@ E;
 			$tid	= $id + 1;
 			print <<<E
 <h1><a name="street-{$tid}">street $tid</a></h1>
-<table class="dataTable">
+<table class="street-data data-table">
 	<thead>
 		<tr>
 			<th>id</th>
@@ -138,7 +140,7 @@ E;
 		<tr>
 			<td class="c">$sid</td>
 			<td class="d-{$square->district} t-{$square->type}" style="position: static; height: 2em;"></td>
-			<td>{$square->fullName}</td>
+			<td class="nobr">{$square->fullName}</td>
 			<td class="r">{$square->value}</td>
 			<td class="r">{$square->price}</td>
 			<td class="c d-{$square->district}">{$district}</td>
@@ -167,7 +169,7 @@ E;
 	$test		= $itadaki->getDecompressor($streetOffsets[$streetNumber]);
 	$streetData	= $test->decompress();
 
-	$street		= new \ItadakiStreet2\Street($itadaki, $streetData);
+	$street		= new Street($itadaki, $streetData);
 	$street->OH_GOD_DONT_FLOOD_THE_PAGE();
 
 ?>
@@ -197,7 +199,7 @@ E;
 		<div class="id">{$id}</div>
 		{$prices}
 		<div class="data">
-			{$square->types[$square->type]}: {$name}
+			{$square->types[$square->type]}: <span class="nobr">{$name}</span>
 			<br>district #{$square->district}
 			<br>floor {$square->floor}
 			<br>links: {$square->linkCount}
@@ -222,7 +224,7 @@ E;
 		}
 
 		print <<<E
-			<table>
+			<table class='street-data'>
 				<thead>
 					$t1
 				</thead>

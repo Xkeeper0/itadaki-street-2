@@ -4,9 +4,7 @@
 
 	print pageHeader("palette town");
 
-
-	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
-
+	$itadaki	= getIS2();
 	$rom		= $itadaki->rom();
 
 

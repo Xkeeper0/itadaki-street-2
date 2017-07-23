@@ -1,6 +1,8 @@
 <?php
 
-	namespace ItadakiStreet2\Street;
+	namespace IS2\Street;
+	use \Utils\DataSeeker;
+	use \IS2\Text\SmallText;;
 
 	class Square {
 		protected	$_street	= null;			// Reference back to the original object
@@ -40,7 +42,7 @@
 			);
 
 
-		public function __construct($street, $id, $data) {
+		public function __construct(Street $street, $id, $data) {
 			$this->_street		= $street;
 			$this->_id			= $id;
 			$this->_data		= $data;
@@ -49,7 +51,7 @@
 		}
 
 		protected function _parse() {
-			$ds					= new \DataSeeker($this->_data);
+			$ds					= new DataSeeker($this->_data);
 
 			$this->_position	= array(
 					'x'				=> $ds->getI(),
@@ -88,8 +90,8 @@
 
 			$translator			= $this->_street->getTranslator();
 			$this->_name		= array(
-				$translator->translateString($nameA),
-				$translator->translateString($nameB),
+				(new SmallText($nameA, $translator, 0))->getAsString(),
+				(new SmallText($nameB, $translator, 0))->getAsString(),
 				);
 			$this->_fullName	= trim($this->_name[0]) . trim($this->_name[1]);
 

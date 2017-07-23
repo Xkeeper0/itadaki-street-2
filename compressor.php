@@ -20,7 +20,7 @@ compression tool. upload some data and get some compressed stuff back.
 
 		print "<pre>";
 		$size	= filesize($_FILES['file']['tmp_name']);
-		$comp	= new \ItadakiStreet2\Compressor(file_get_contents($_FILES['file']['tmp_name']));
+		$comp	= new \IS2\Compression\Compressor(file_get_contents($_FILES['file']['tmp_name']));
 		ob_start();
 		$data	= $comp->compress();
 		$log	= ob_get_clean();

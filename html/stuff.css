@@ -30,13 +30,18 @@ pre	{
 	width: 1.5em;
 	height: 1.5em;
 	text-align: center;
+	border:	1px solid black;
 }
 .menugrid td.c {
 	background: #224;
 }
 
 footer	{
-	text-align:	right;
+	position:	absolute;
+	top:		3px;
+	right:		3px;
+	padding:	3px;
+	background:	rgba(0, 0, 0, 0.5);
 }
 
 .specialChar	{
@@ -120,8 +125,9 @@ del	{
 table {
 	border-collapse:	collapse;
 	}
-td, th {
-	border:	1px solid #ccc;
+
+.street-data td, .street-data th {
+	border:			1px solid #777;
 	font-family:	Consolas, Courier New, monospace;
 	padding:		0.1em 0.3em;
 	}
@@ -186,7 +192,7 @@ td, th {
 
 li			{	white-space:	nowrap;	}
 
-.dataTable > tbody > tr > td {
+.data-table > tbody > tr > td {
 	background-size:		contain !important;
 	background-repeat:		no-repeat;
 	background-position:	center;
@@ -194,6 +200,7 @@ li			{	white-space:	nowrap;	}
 
 .r	{	text-align: right;	}
 .c	{	text-align: center;	}
-.dataTable td, .dataTable th {
+.nobr { white-space: nowrap; }
+.data-table td, .data-table th {
 	padding: 0.2em 0.5em;
 }

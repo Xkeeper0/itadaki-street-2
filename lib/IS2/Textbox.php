@@ -1,6 +1,8 @@
 <?php
 
-	namespace ItadakiStreet2;
+	namespace IS2;
+	use \Utils\DataSeeker;
+	use \IS2\Text\BigText;
 
 	class Textbox {
 
@@ -29,7 +31,7 @@
 		/**
 		 *
 		 */
-		public function __construct(\ItadakiStreet2 $translator, $offset, $textOffsetROM = null) {
+		public function __construct(ItadakiStreet2 $translator, $offset, $textOffsetROM = null) {
 			$this->_translator		= $translator;
 			$this->_offset			= $offset;
 			$this->_textOffsetROM	= $textOffsetROM;
@@ -40,8 +42,10 @@
 		 * Decode the header of a textbox into something usable
 		 */
 		protected function _parseTextbox() {
-			// 256 bytes chosen as arbitrary limit, should never be reached
-			$data		= new \DataSeeker($this->_translator->romS($this->_offset, 0x100));
+			$rom		= $this->_translator->rom();
+			$data		= new DataSeeker($rom);
+			$data2		= new DataSeeker($rom);
+			$data->seek($this->_offset);
 
 			try {
 				while (!$data->isEOF()) {
@@ -69,11 +73,14 @@
 							$concatTemp			= array();
 							$tmpText			= array();
 
+							// Temporarily move our read pointer around
+							$data2->seek($tmpCurrentPointer);
+
 							// Continuously fetch stuff
-							while ($tmpPointerValue = $this->_translator->romI($tmpCurrentPointer, 2)) {
+							while ($tmpPointerValue = $data2->getI(2)) {
 								if ($tmpPointerValue >= 0x8000) {
 									$tmpPointerValueROM	= $tmpPointerValue + 0x68000;
-									$text				= $this->_translator->getStringAtOffsetArray($tmpPointerValueROM);
+									$text				= $this->_translator->getSmallText($tmpPointerValueROM)->getAsArray();
 								} else {
 									$text				= array(sprintf("<span title='\$%04X' class='specialChar'>�</span>", $tmpPointerValue));
 									$tmpPointerValueROM	= $tmpPointerValue;
@@ -113,7 +120,7 @@
 							$this->_title	= array(
 								'offset'	=> $offset,
 								'offsetROM'	=> $offsetROM,
-								'text'		=> $this->_translator->getStringAtOffsetArray($offsetROM),
+								'text'		=> $this->_translator->getSmallText($offsetROM)->getAsArray(),
 							);
 							break;
 
@@ -155,7 +162,7 @@
 							// Text pointer for the actual text
 							$offset		= $data->getI(2);
 							$offsetROM	= 0x68000 + $offset;
-							$text		= $this->_translator->getStringAtOffsetArray($offsetROM);
+							$text		= $this->_translator->getSmallText($offsetROM)->getAsArray();
 							if ($offset < 0x8000) {
 								// This is not actually text, uh oh
 								$text	= array(sprintf("<span title='\$%04X' class='specialChar'>�</span>", $offset));
@@ -202,7 +209,7 @@
 
 			$paramsText		= "";
 			foreach ($this->_rawParams as $param) {
-				$paramsText	.= ($paramsText ? ", " : "") . \Utils::printableHex($param);
+				$paramsText	.= ($paramsText ? ", " : "") . \Utils\Convert::printableHex($param);
 			}
 
 			$out	= sprintf("Textbox, offset \$%06X, header [%s]\n", $this->_offset, $paramsText);
@@ -239,12 +246,13 @@
 
 			if ($this->_bigText) {
 				$out	.= sprintf("  Big text: \$%04X (ROM: \$%06X)\n", $this->_bigText['offset'], $this->_bigText['offsetROM']);
-				foreach ($this->_bigText['text'] as $line) {
-					foreach ($line as $char) {
-						$out	.= sprintf('<img src="bigtext.php?i=0x%03x" title="$%03x">', $char, $char);
-					}
-					$out	.= "\n";
+				$bigText		= $this->_bigText['text']->getAsString();
+				$bigTextArray	= $this->_bigText['text']->getRawAsArray();
+				$out			.= $bigText ."\n";
+				foreach ($bigTextArray as  $char) {
+					$out	.= ($char === -1 ? "\n" : BigText::getImage($char));
 				}
+				$out	.= "\n";
 			}
 
 			return $out;

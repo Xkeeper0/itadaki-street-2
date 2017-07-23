@@ -18,7 +18,7 @@
 		}
 
 		protected function _parseColor($c, $colorData) {
-			$colorRaw	= \Utils::toIntLE($colorData);
+			$colorRaw	= \Utils\Convert::toIntLE($colorData);
 			$color	= array();
 			$color['raw']	= $colorRaw;
 			$color['r']		= ($colorRaw & 0x001F) << 3;

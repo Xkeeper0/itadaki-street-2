@@ -2,7 +2,7 @@
 
 	require "includes.php";
 
-	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
+	$itadaki	= getIS2();
 
 	if (IS_CLI) {
 		// If run as a command line too, do command line stuff
