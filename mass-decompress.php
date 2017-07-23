@@ -19,10 +19,11 @@
 	// Make sure to create a "decomp/" folder too.
 	// (This tool isn't really prime-time ready, you see.)
 
-	$ofs		= 0x1248DF;
-	$ofs		= 0x08b800;
-	$ofs		= 0x061440;
-	$ofs		= 0x0FFA00;
+	//$ofs		= 0x1248DF;
+	//$ofs		= 0x08b800;
+	//$ofs		= 0x061440;
+	//$ofs		= 0x0FFA00;
+	$ofs		= 0x167970;
 
 	while (true) {
 
