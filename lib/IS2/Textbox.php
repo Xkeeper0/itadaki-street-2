@@ -117,11 +117,17 @@
 							// Title of text box; placed across the top border
 							$offset			= $data->getI(2);
 							$offsetROM		= 0x68000 + $offset;
+							$text			= $this->_translator->getSmallText($offsetROM)->getAsArray();
+							if ($offset < 0x8000) {
+								// This is not actually text, uh oh
+								$text		= array(sprintf("<span title='\$%04X' class='specialChar'>�</span>", $offset));
+								$offsetROM 	= false;
+							}
 							$this->_title	= array(
 								'offset'	=> $offset,
 								'offsetROM'	=> $offsetROM,
-								'text'		=> $this->_translator->getSmallText($offsetROM)->getAsArray(),
-							);
+								'text'		=> $text,
+								);
 							break;
 
 						case 0x0a:
