@@ -7,29 +7,32 @@
 
 	#header("Content-type: text/plain");
 
-	$itadaki	= new ItadakiStreet2("ita2.sfc", "is2.tbl", null);
+	$itadaki	= getIS2();
+	$rom		= $itadaki->rom;
 
-	#var_dump($itadaki->getStringAtOffset(0x72ba0 + 4));
-	#var_dump($itadaki->getStringAtOffset(0x73554));
-
-	$o	= 0x73545;
+	$o	= 0x7029a;
 
 	if (isset($_GET['o'])) {
 		$o	= hexdec($_GET['o']);
 	}
 
-	printf("offset: \$%06x\n\n<br>", $o);
+	printf("offset: \$%06x\n\n<br><br>", $o);
 
 	try {
 
-		$tb		= $itadaki->getBigText($o);
+		$bigText	= $itadaki->getBigText($o);
+		$tb		= $bigText->getRawAsArray();
+		$txt		= str_replace("\n", "<br>", $bigText->getAsString());
+
+		printf("%s\n\n<br><br>", $txt);
 
 		if ($tb) {
-			foreach ($tb as $line) {
-				foreach ($line as $char) {
-					printf('<img src="bigtext.php?i=0x%03x" title="$%03x">', $char, $char);
+			foreach ($tb as $char) {
+				if ($char === -1) {
+					print "\n<br>";
+				} else {
+					print \IS2\Text\BigText::getImage($char);
 				}
-				print "\n<br>";
 			}
 		}
 
