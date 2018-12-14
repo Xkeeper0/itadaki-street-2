@@ -273,29 +273,31 @@
 			$grid					= array_fill(0, 28, array_fill(0, 32, null));
 
 			// Quick vars
-			$btop					= $this->_position['y'];
-			$bbottom				= $btop + $this->_position['h'] - 1;
-			$bleft					= $this->_position['x'];
-			$bright					= $bleft + $this->_position['w'] - 1;
+			$btop					= $this->_position ? $this->_position['y'] : 0x0A;
+			$bbottom				= $btop + ($this->_position ? $this->_position['h'] : 0x07) - 1;
+			$bleft					= $this->_position ? $this->_position['x'] : 0x09;
+			$bright					= $bleft + ($this->_position ? $this->_position['w'] : 0x0E) - 1;
 
 			// Draw border
-			for ($yp = $btop; $yp <= $bbottom; $yp++) {
-				for ($xp = $bleft; $xp <= $bright; $xp++) {
-					$c		= "";
-					if ($yp == $btop) {
-						if		($xp == $bleft) 	$c	= "┌";
-						elseif	($xp == $bright)	$c	= "┐";
-						else						$c	= "─";
-					} elseif ($yp == $bbottom) {
-						if		($xp == $bleft) 	$c	= "└";
-						elseif	($xp == $bright)	$c	= "┘";
-						else						$c	= "─";
-					} elseif ($xp == $bleft) {
-						$c	= "│";
-					} elseif ($xp == $bright) {
-						$c	= "│";
+			if ($this->_position) {
+				for ($yp = $btop; $yp <= $bbottom; $yp++) {
+					for ($xp = $bleft; $xp <= $bright; $xp++) {
+						$c		= "";
+						if ($yp == $btop) {
+							if		($xp == $bleft) 	$c	= "┌";
+							elseif	($xp == $bright)	$c	= "┐";
+							else						$c	= "─";
+						} elseif ($yp == $bbottom) {
+							if		($xp == $bleft) 	$c	= "└";
+							elseif	($xp == $bright)	$c	= "┘";
+							else						$c	= "─";
+						} elseif ($xp == $bleft) {
+							$c	= "│";
+						} elseif ($xp == $bright) {
+							$c	= "│";
+						}
+						$grid[$yp][$xp]	= $c;
 					}
-					$grid[$yp][$xp]	= $c;
 				}
 			}
 
